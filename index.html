@@ -644,6 +644,14 @@ else{ ctx.fillStyle="red";
   ctx.fillText("Press ESC to resume", canvas.width/2 - 100, canvas.height/2 + 30);
 }
 </script>
-
+  
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js");
+    });
+}
+</script>
+  
 </body>
 </html>
