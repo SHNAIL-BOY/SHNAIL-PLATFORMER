@@ -1,9 +1,9 @@
 const CACHE_NAME = "shnail-cache-v1";
 
-const FILES_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./offline.html"
+const FILES = [
+    "./",
+    "./index.html",
+    "./offline.html"
 ];
 
 self.addEventListener("install", event => {
