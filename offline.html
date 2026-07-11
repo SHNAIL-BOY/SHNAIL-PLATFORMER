@@ -186,6 +186,12 @@ I spent a long time making this
 
 <p id="score">Leaves: 0</p>
 
+  <p id="score">Leaves: 0</p>
+
+<button id="startGameBtn">
+    Start Mini Game
+</button>
+
 <button id="retryButton" onclick="location.reload()">
     Retry
 </button>
@@ -237,6 +243,8 @@ document.addEventListener("keydown",e=>keys[e.code]=true);
 document.addEventListener("keyup",e=>keys[e.code]=false);
 
 setInterval(()=>{
+
+    if(!running) return;
 
     leaves.push({
         x:Math.random()*300,
@@ -312,8 +320,6 @@ function draw(){
 
     document.getElementById("score").textContent=
         `Leaves: ${score}   Misses: ${misses}/5`;
-  
-  <button id="startGameBtn">Start Mini Game</button>
 
    if(misses>=5){
 
@@ -332,23 +338,28 @@ function draw(){
 
     cancelAnimationFrame(animationId);
 
+     document.getElementById("startGameBtn").disabled=false;
+
     return;
 }
 }
 
-    document.getElementById("startGameBtn").onclick=function(){
+document.getElementById("startGameBtn").onclick=function(){
+
+  this.disabled=true;
+  
+    cancelAnimationFrame(animationId);
 
     leaves=[];
-
     score=0;
-
     misses=0;
 
     shnail.x=140;
 
     running=true;
-
     gameOver=false;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
     update();
 
