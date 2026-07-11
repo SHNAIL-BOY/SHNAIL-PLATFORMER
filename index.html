@@ -719,7 +719,19 @@ SUPABASE_KEY
 
 const messages = document.getElementById("messages");
 
+  const usernameInput = document.getElementById("username");
 
+usernameInput.value = localStorage.getItem("chatName") || "";
+
+usernameInput.addEventListener("input", () => {
+  localStorage.setItem("chatName", usernameInput.value);
+});
+
+document.getElementById("chatInput").addEventListener("keydown", e => {
+if (e.key === "Enter") {
+sendMessage();
+  }
+});
 
 function addMessage(user,text){
 
@@ -734,9 +746,17 @@ messages.scrollTop=messages.scrollHeight;
 
 }
 
-
+let canSend = true;
 
 async function sendMessage(){
+
+if(!canSend) return;
+
+canSend = false;
+
+setTimeout(()=>{
+    canSend = true;
+},1000);
 
 let username=
 document.getElementById("username").value;
@@ -767,8 +787,8 @@ async function loadMessages(){
 let {data}=await client
 .from("messages")
 .select("*")
-.order("created_at");
-
+.order("created_at")
+.limit(50);
 
 data.forEach(m=>{
 addMessage(
