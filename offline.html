@@ -111,7 +111,22 @@ button:active{
     background:#0b2012;
     image-rendering:pixelated;
 }
+    
+#startGameBtn{
+    margin-top:10px;
+    padding:10px 20px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+}
 
+#startGameBtn:hover{
+    filter:brightness(1.1);
+}
+    
 #logo{
     width:120px;
     height:120px;
@@ -214,6 +229,9 @@ const keys={};
 let leaves=[];
 let score=0;
 let misses=0;
+let running = false;
+let gameOver = false;
+let animationId;
 
 document.addEventListener("keydown",e=>keys[e.code]=true);
 document.addEventListener("keyup",e=>keys[e.code]=false);
@@ -229,6 +247,8 @@ setInterval(()=>{
 },700);
 
 function update(){
+
+    if(!running) return;
 
     if(keys["ArrowLeft"]||keys["KeyA"])
         shnail.x-=shnail.speed;
@@ -263,7 +283,9 @@ function update(){
 
     draw();
 
-    requestAnimationFrame(update);
+    if(gameOver) return;
+
+    animationId=requestAnimationFrame(update);
 
 }
 
@@ -290,20 +312,47 @@ function draw(){
 
     document.getElementById("score").textContent=
         `Leaves: ${score}   Misses: ${misses}/5`;
+  
+  <button id="startGameBtn">Start Mini Game</button>
 
-    if(misses>=5){
+   if(misses>=5){
 
-        ctx.fillStyle="white";
-        ctx.font="18px monospace";
-        ctx.fillText("GAME OVER",90,110);
+    gameOver=true;
+    running=false;
 
-        return;
+    ctx.fillStyle="rgba(0,0,0,.6)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    }
+    ctx.fillStyle="white";
+    ctx.font="20px monospace";
+    ctx.fillText("GAME OVER",90,95);
 
+    ctx.font="14px monospace";
+    ctx.fillText("Press Start to play again",55,125);
+
+    cancelAnimationFrame(animationId);
+
+    return;
+}
 }
 
-update();
+    document.getElementById("startGameBtn").onclick=function(){
+
+    leaves=[];
+
+    score=0;
+
+    misses=0;
+
+    shnail.x=140;
+
+    running=true;
+
+    gameOver=false;
+
+    update();
+
+};
 
 window.addEventListener("online",()=>{
     location.reload();
