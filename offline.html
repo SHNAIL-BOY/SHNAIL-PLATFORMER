@@ -188,51 +188,7 @@ Retry
     </div>
 </div>
 
-</div>
-  <script>
-    var message = document.getElementById('message');
-    var retryButton = document.getElementById('retryButton')
-    if (['ko', 'ko-kr', 'ko-kp'].indexOf(navigator.language.toLowerCase()) > -1) {
-      // Korean
-      message.innerHTML = '<p>인터넷 연결이 끊겼습니다.<br/>연결하고 다시 시도하시길 바랍니다.</p>';
-      retryButton.innerText = '괜찮아';
-    }
-    function updateDarkMode(){
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.setAttribute("data-theme", "dark");
-      }
-      else {
-        document.documentElement.setAttribute("data-theme", "light");
-      } 
-    }
-    updateDarkMode();
-    if(window.matchMedia){
-      window.matchMedia('(prefers-color-scheme: dark)')
-        .addEventListener('change', updateDarkMode);
-    }
-  </script>
-  <script>
-for(let i=0;i<60;i++){
-
-    const p=document.createElement("div");
-
-    p.className="particle";
-
-    p.style.left=Math.random()*100+"vw";
-
-    p.style.animationDuration=8+Math.random()*12+"s";
-
-    p.style.animationDelay=-Math.random()*20+"s";
-
-    p.style.opacity=Math.random()*.5;
-
-    p.style.transform=`scale(${Math.random()*2+.5})`;
-
-    document.body.appendChild(p);
-
-}
-
-    <script>
+      <script>
 
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d");
@@ -364,5 +320,49 @@ loop();
 
 </script>
 
+</div>
+  <script>
+    var message = document.getElementById('message');
+    var retryButton = document.getElementById('retryButton')
+    if (['ko', 'ko-kr', 'ko-kp'].indexOf(navigator.language.toLowerCase()) > -1) {
+      // Korean
+      message.innerHTML = '<p>인터넷 연결이 끊겼습니다.<br/>연결하고 다시 시도하시길 바랍니다.</p>';
+      retryButton.innerText = '괜찮아';
+    }
+    function updateDarkMode(){
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+      else {
+        document.documentElement.setAttribute("data-theme", "light");
+      } 
+    }
+    updateDarkMode();
+    if(window.matchMedia){
+      window.matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', updateDarkMode);
+    }
+  </script>
+  <script>
+for(let i=0;i<60;i++){
+
+    const p=document.createElement("div");
+
+    p.className="particle";
+
+    p.style.left=Math.random()*100+"vw";
+
+    p.style.animationDuration=8+Math.random()*12+"s";
+
+    p.style.animationDelay=-Math.random()*20+"s";
+
+    p.style.opacity=Math.random()*.5;
+
+    p.style.transform=`scale(${Math.random()*2+.5})`;
+
+    document.body.appendChild(p);
+
+}
+</script>
 </body>
 </html>
