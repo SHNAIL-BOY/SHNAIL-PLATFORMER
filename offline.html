@@ -99,6 +99,26 @@ button:active{
     transform:scale(.96);
 }
 
+    #gameBox{
+    margin-top:25px;
+}
+
+#game{
+    width:280px;
+    height:170px;
+    border-radius:16px;
+    background:linear-gradient(#7dd3fc,#22c55e);
+    border:2px solid rgba(255,255,255,.15);
+    image-rendering:pixelated;
+    box-shadow:0 0 25px rgba(0,0,0,.25);
+}
+
+#gameText{
+    margin-top:8px;
+    font-size:13px;
+    opacity:.7;
+}
+
 #logo{
     width:120px;
     height:120px;
@@ -157,6 +177,148 @@ I spent a long time making this
 <button onclick="gonative.webview.reload()">
 Retry
 </button>
+
+  <br><br>
+
+<div id="gameBox">
+    <canvas id="game" width="280" height="170"></canvas>
+
+    <div id="gameText">
+        ← → Move &nbsp;&nbsp; Space Jump
+    </div>
+</div>
+
+      <script>
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+const keys={};
+
+addEventListener("keydown",e=>keys[e.key]=true);
+addEventListener("keyup",e=>keys[e.key]=false);
+
+const player={
+x:30,
+y:0,
+w:16,
+h:18,
+dx:0,
+dy:0,
+ground:false
+};
+
+const platforms=[
+{x:0,y:150,w:280,h:20},
+{x:90,y:120,w:60,h:10},
+{x:180,y:90,w:70,h:10}
+];
+
+const coin={
+x:210,
+y:60,
+r:6
+};
+
+let score=0;
+
+function resetCoin(){
+coin.x=30+Math.random()*220;
+coin.y=30+Math.random()*90;
+}
+
+function update(){
+
+if(keys["ArrowLeft"]) player.dx=-2.5;
+else if(keys["ArrowRight"]) player.dx=2.5;
+else player.dx*=0.8;
+
+if((keys[" "]||keys["ArrowUp"])&&player.ground){
+player.dy=-7;
+player.ground=false;
+}
+
+player.dy+=0.35;
+
+player.x+=player.dx;
+player.y+=player.dy;
+
+player.ground=false;
+
+for(const p of platforms){
+
+if(
+player.x+player.w>p.x &&
+player.x<p.x+p.w &&
+player.y+player.h>p.y &&
+player.y+player.h-player.dy<=p.y
+){
+player.y=p.y-player.h;
+player.dy=0;
+player.ground=true;
+}
+
+}
+
+if(player.x<0)player.x=0;
+if(player.x+player.w>280)player.x=280-player.w;
+
+if(player.y>200){
+player.x=30;
+player.y=0;
+player.dy=0;
+}
+
+const cx=player.x+8;
+const cy=player.y+9;
+
+if(Math.hypot(cx-coin.x,cy-coin.y)<12){
+score++;
+resetCoin();
+}
+
+}
+
+function draw(){
+
+ctx.clearRect(0,0,280,170);
+
+ctx.fillStyle="#58c36a";
+ctx.fillRect(0,150,280,20);
+
+ctx.fillStyle="#3e8e41";
+for(const p of platforms){
+ctx.fillRect(p.x,p.y,p.w,p.h);
+}
+
+ctx.fillStyle="#ffd700";
+ctx.beginPath();
+ctx.arc(coin.x,coin.y,coin.r,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#ffffff";
+ctx.fillRect(player.x,player.y,player.w,player.h);
+
+ctx.fillStyle="black";
+ctx.fillRect(player.x+3,player.y+5,2,2);
+ctx.fillRect(player.x+11,player.y+5,2,2);
+
+ctx.fillStyle="white";
+ctx.font="12px Arial";
+ctx.fillText("Coins: "+score,8,15);
+
+}
+
+function loop(){
+update();
+draw();
+requestAnimationFrame(loop);
+}
+
+resetCoin();
+loop();
+
+</script>
 
 </div>
   <script>
