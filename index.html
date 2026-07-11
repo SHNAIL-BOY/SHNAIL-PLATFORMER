@@ -111,6 +111,22 @@ margin-top:5px;
 
 </div>
 
+<div id="loginScreen">
+
+<h2>SHNAIL ACCOUNT</h2>
+
+<input id="email" type="email" placeholder="Email">
+
+<input id="password" type="password" placeholder="Password">
+
+<input id="newUsername" placeholder="Username">
+
+<button onclick="signUp()">Create Account</button>
+
+<button onclick="login()">Login</button>
+
+</div>
+
 <div id="mainMenu">
 <h1>SHNAIL PLATFORMER</h1>
 <button id="startButton" onclick="startGame()">START</button>
@@ -758,8 +774,18 @@ setTimeout(()=>{
     canSend = true;
 },1000);
 
-let username=
-document.getElementById("username").value;
+const {
+data:{user}
+}=await client.auth.getUser();
+
+const {data:profile}=await client
+.from("profiles")
+.select("username")
+.eq("id",user.id)
+.single();
+
+let username =
+profile.username;
 
 let text=
 document.getElementById("chatInput").value;
@@ -780,7 +806,63 @@ document.getElementById("chatInput").value="";
 
 }
 
+async function signUp(){
 
+const email =
+document.getElementById("email").value;
+
+const password =
+document.getElementById("password").value;
+
+const username =
+document.getElementById("newUsername").value;
+
+const { data, error } =
+await client.auth.signUp({
+email,
+password
+});
+
+if(error){
+alert(error.message);
+return;
+}
+
+await client
+.from("profiles")
+.insert({
+id:data.user.id,
+username
+});
+
+alert("Account created!");
+
+}
+
+async function login(){
+
+const email =
+document.getElementById("email").value;
+
+const password =
+document.getElementById("password").value;
+
+const { error } =
+await client.auth.signInWithPassword({
+email,
+password
+});
+
+if(error){
+alert(error.message);
+return;
+}
+
+document.getElementById("username").style.display="none";
+  
+location.reload();
+
+}
 
 async function loadMessages(){
 
