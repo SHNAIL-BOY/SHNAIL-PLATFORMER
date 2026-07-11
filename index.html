@@ -56,12 +56,60 @@
       width:140px;
     }
 
+    #chatBox{
+position:fixed;
+right:10px;
+bottom:10px;
+width:260px;
+background:#111;
+color:white;
+padding:10px;
+border-radius:10px;
+font-family:Arial;
+z-index:999;
+}
+
+#messages{
+height:150px;
+overflow-y:auto;
+background:#222;
+padding:5px;
+margin-bottom:5px;
+}
+
+#chatInput,#username{
+width:100%;
+box-sizing:border-box;
+margin-top:5px;
+}
+
+#chatBox button{
+width:100%;
+margin-top:5px;
+}
+
+    
+
     .hudRow{ margin-bottom:5px; font-size:10px; }
     .bar{ width:100%; height:6px; background:#333; margin-top:2px; }
     #ammoBar{ height:100%; width:100%; background:orange; }
   </style>
 </head>
 <body>
+
+  <div id="chatBox">
+
+<h3>💬 SHNAIL CHAT</h3>
+
+<div id="messages"></div>
+
+<input id="username" placeholder="Name">
+
+<input id="chatInput" placeholder="Message">
+
+<button onclick="sendMessage()">Send</button>
+
+</div>
 
 <div id="mainMenu">
 <h1>SHNAIL PLATFORMER</h1>
@@ -653,5 +701,112 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL = "https://mpnybsxtwcbllrxouodw.supabase.co";
+
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wbnlic3h0d2NibGxyeG91b2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NTk4NjksImV4cCI6MjA5OTMzNTg2OX0.un6Yd4hbepBWIJ9rOmLKmxvzuDlqA910h38D8PH6SMY";
+
+
+const client = supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+
+
+const messages = document.getElementById("messages");
+
+
+
+function addMessage(user,text){
+
+let div=document.createElement("div");
+
+div.innerHTML=
+"<b>"+user+"</b>: "+text;
+
+messages.appendChild(div);
+
+messages.scrollTop=messages.scrollHeight;
+
+}
+
+
+
+async function sendMessage(){
+
+let username=
+document.getElementById("username").value;
+
+let text=
+document.getElementById("chatInput").value;
+
+
+if(username===""||text==="") return;
+
+
+await client
+.from("messages")
+.insert({
+username:username,
+message:text
+});
+
+
+document.getElementById("chatInput").value="";
+
+}
+
+
+
+async function loadMessages(){
+
+let {data}=await client
+.from("messages")
+.select("*")
+.order("created_at");
+
+
+data.forEach(m=>{
+addMessage(
+m.username,
+m.message
+);
+});
+
+}
+
+
+
+client
+.channel("chat-room")
+.on(
+"postgres_changes",
+{
+event:"INSERT",
+schema:"public",
+table:"messages"
+},
+payload=>{
+
+addMessage(
+payload.new.username,
+payload.new.message
+);
+
+}
+)
+.subscribe();
+
+
+
+loadMessages();
+
+
+</script>
+  
 </body>
 </html>
