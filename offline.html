@@ -99,6 +99,15 @@ button:active{
     transform:scale(.96);
 }
 
+    #miniGame{
+    margin:20px auto;
+    display:block;
+    border:2px solid rgba(255,255,255,.15);
+    border-radius:12px;
+    background:#0b2012;
+    image-rendering:pixelated;
+}
+
 #logo{
     width:120px;
     height:120px;
@@ -154,6 +163,10 @@ No internet connection.<br>
 I spent a long time making this
 </p>
 
+<canvas id="miniGame" width="320" height="220"></canvas>
+
+<p id="score">Leaves: 0</p>
+
 <button onclick="gonative.webview.reload()">
 Retry
 </button>
@@ -182,6 +195,117 @@ Retry
     }
   </script>
   <script>
+    const canvas=document.getElementById("miniGame");
+const ctx=canvas.getContext("2d");
+
+const shnail={
+    x:140,
+    y:185,
+    w:40,
+    h:20,
+    speed:4
+};
+
+const keys={};
+
+let leaves=[];
+let score=0;
+let misses=0;
+
+document.addEventListener("keydown",e=>keys[e.code]=true);
+document.addEventListener("keyup",e=>keys[e.code]=false);
+
+setInterval(()=>{
+
+    leaves.push({
+        x:Math.random()*300,
+        y:-10,
+        dy:2+Math.random()*2
+    });
+
+},700);
+
+function update(){
+
+    if(keys["ArrowLeft"]||keys["KeyA"])
+        shnail.x-=shnail.speed;
+
+    if(keys["ArrowRight"]||keys["KeyD"])
+        shnail.x+=shnail.speed;
+
+    shnail.x=Math.max(0,Math.min(canvas.width-shnail.w,shnail.x));
+
+    leaves.forEach(l=>{
+
+        l.y+=l.dy;
+
+        if(
+            l.x<shnail.x+shnail.w &&
+            l.x+8>shnail.x &&
+            l.y<shnail.y+shnail.h &&
+            l.y+8>shnail.y
+        ){
+            l.dead=true;
+            score++;
+        }
+
+        if(l.y>canvas.height){
+            l.dead=true;
+            misses++;
+        }
+
+    });
+
+    leaves=leaves.filter(l=>!l.dead);
+
+    draw();
+
+    requestAnimationFrame(update);
+
+}
+
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // leaves
+    ctx.fillStyle="#22c55e";
+
+    leaves.forEach(l=>{
+        ctx.fillRect(l.x,l.y,8,8);
+    });
+
+    // SHNAIL
+    ctx.fillStyle="white";
+    ctx.fillRect(shnail.x,shnail.y,16,16);
+    ctx.fillStyle="#ddd";
+    ctx.fillRect(shnail.x+8,shnail.y+8,24,10);
+
+    ctx.fillStyle="white";
+    ctx.fillRect(shnail.x+28,shnail.y+4,2,4);
+    ctx.fillRect(shnail.x+32,shnail.y+4,2,4);
+
+    document.getElementById("score").textContent=
+        `Leaves: ${score}   Misses: ${misses}/5`;
+
+    if(misses>=5){
+
+        ctx.fillStyle="white";
+        ctx.font="18px monospace";
+        ctx.fillText("GAME OVER",90,110);
+
+        return;
+
+    }
+
+}
+
+update();
+
+window.addEventListener("online",()=>{
+    location.reload();
+});
+    
 for(let i=0;i<60;i++){
 
     const p=document.createElement("div");
