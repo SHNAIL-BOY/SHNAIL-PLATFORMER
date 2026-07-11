@@ -800,6 +800,10 @@ await client
 username:username,
 message:text
 });
+  if (!data.user) {
+  alert("Signup succeeded, but no user was returned.");
+  return;
+}
 
 
 document.getElementById("chatInput").value="";
@@ -853,9 +857,10 @@ email,
 password
 });
 
-if(error){
-alert(error.message);
-return;
+if (error) {
+  console.error(error);
+  alert(error.message);
+  return;
 }
 
 document.getElementById("username").style.display="none";
