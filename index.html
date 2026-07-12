@@ -768,8 +768,6 @@ SUPABASE_KEY
 
 const messages = document.getElementById("messages");
 
-const DEV_NAME = "SHNAIL";
-
   const usernameInput = document.getElementById("username");
 
 usernameInput.value = localStorage.getItem("chatName") || "";
@@ -784,37 +782,20 @@ sendMessage();
   }
 });
 
-function addMessage(user, text) {
+function addMessage(user,text){
 
-    let div = document.createElement("div");
+let div=document.createElement("div");
 
-    if (user === "🟢 SYSTEM") {
-        div.style.color = "#7CFF7C";
-        div.style.fontStyle = "italic";
-        div.textContent = text;
-    } else {
+div.innerHTML=
+"<b>"+user+"</b>: "+text;
 
-        if (user === DEV_NAME) {
-            div.style.color = "#7CFF7C";
-        }
+messages.appendChild(div);
 
-        let name = document.createElement("b");
+messages.scrollTop=messages.scrollHeight;
 
-        if (user === DEV_NAME) {
-            name.innerHTML =
-                '👑 ' + user +
-                ' <span style="background:#FFD700;color:black;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:bold;margin-left:5px;">DEV</span>';
-        } else {
-            name.textContent = user;
-        }
-
-        div.appendChild(name);
-        div.appendChild(document.createTextNode(": " + text));
-    }
-
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
 }
+
+let canSend = true;
 
 async function sendMessage(){
 
