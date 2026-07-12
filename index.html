@@ -231,6 +231,10 @@ background:#4CAF50;
 
 }
 
+    #chatBox.minimized{
+    height:45px !important;
+}
+
     .hudRow{ margin-bottom:5px; font-size:10px; }
     .bar{ width:100%; height:6px; background:#333; margin-top:2px; }
     #ammoBar{ height:100%; width:100%; background:orange; }
@@ -1023,7 +1027,7 @@ presenceChannel
     }
   });
 
-  const minimizeBtn = document.getElementById("minimizeBtn");
+ const minimizeBtn = document.getElementById("minimizeBtn");
 
 let minimized = false;
 
@@ -1041,13 +1045,17 @@ minimizeBtn.onclick = () => {
         bottom.style.display = "none";
         handle.style.display = "none";
 
+        chatBox.style.height = "45px";
+
         minimizeBtn.textContent = "➕";
 
-    }else{
+    } else {
 
         messages.style.display = "";
         bottom.style.display = "";
         handle.style.display = "";
+
+        chatBox.style.height = "400px";
 
         minimizeBtn.textContent = "➖";
 
