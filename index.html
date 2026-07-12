@@ -873,6 +873,23 @@ payload.new.message
 
 
 loadMessages();
+const presenceChannel = client.channel("online-users");
+
+presenceChannel
+  .on("presence", { event: "sync" }, () => {
+    const state = presenceChannel.presenceState();
+
+    document.getElementById("onlineCount").textContent =
+      "🟢 " + Object.keys(state).length + " Online";
+  })
+  .subscribe(async (status) => {
+    if (status === "SUBSCRIBED") {
+      await presenceChannel.track({
+        username:
+          document.getElementById("username").value || "Guest"
+      });
+    }
+  });
 
 
 </script>
