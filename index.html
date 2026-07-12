@@ -811,6 +811,7 @@ SUPABASE_KEY
 
 
 const messages = document.getElementById("messages");
+  let canSend = true;
 
   const usernameInput = document.getElementById("username");
 
@@ -865,34 +866,27 @@ function addMessage(user, text) {
 
 async function sendMessage(){
 
-if(!canSend) return;
+    let username = document.getElementById("username").value.trim();
+    let text = document.getElementById("chatInput").value.trim();
 
-canSend = false;
+    if(username === "" || text === "") return;
 
-setTimeout(()=>{
-    canSend = true;
-},1000);
+    if(!canSend) return;
 
-let username=
-document.getElementById("username").value;
+    canSend = false;
 
-let text=
-document.getElementById("chatInput").value;
+    setTimeout(() => {
+        canSend = true;
+    }, 1000);
 
+    await client
+    .from("messages")
+    .insert({
+        username: username,
+        message: text
+    });
 
-if(username===""||text==="") return;
-
-
-await client
-.from("messages")
-.insert({
-username:username,
-message:text
-});
-
-
-document.getElementById("chatInput").value="";
-
+    document.getElementById("chatInput").value = "";
 }
 
 
