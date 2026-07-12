@@ -768,6 +768,8 @@ SUPABASE_KEY
 
 const messages = document.getElementById("messages");
 
+  let playerId = crypto.randomUUID();
+
   const usernameInput = document.getElementById("username");
 
 usernameInput.value = localStorage.getItem("chatName") || "";
@@ -829,8 +831,40 @@ document.getElementById("chatInput").value="";
 
 }
 
+  
+
+async function updatePresence(){
+
+let username =
+document.getElementById("username").value || "Guest";
+
+await client
+.from("online_players")
+.upsert({
+id:playerId,
+username,
+last_seen:new Date()
+});
+
+}
 
 
+async function updateOnlineCount(){
+
+let cutoff =
+new Date(Date.now()-15000).toISOString();
+
+let {data}=await client
+.from("online_players")
+.select("*")
+.gt("last_seen",cutoff);
+
+document.getElementById("onlineCount").innerText =
+"🟢 " + data.length + " Online";
+
+}
+
+  
 async function loadMessages(){
 
 let {data}=await client
@@ -873,6 +907,12 @@ payload.new.message
 
 
 loadMessages();
+
+updatePresence();
+updateOnlineCount();
+
+setInterval(updatePresence,10000);
+setInterval(updateOnlineCount,3000);
 
 
 </script>
