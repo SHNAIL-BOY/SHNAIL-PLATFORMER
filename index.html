@@ -816,36 +816,35 @@ function addMessage(user, text) {
     messages.scrollTop = messages.scrollHeight;
 }
 
-const DEV_NAME = "SHNAIL";
-const DEV_KEY = "shnailwashere";
-
 async function sendMessage(){
 
-let username =
-document.getElementById("username").value.trim();
+if(!canSend) return;
 
-let text =
-document.getElementById("chatInput").value.trim();
+canSend = false;
 
-if (
-    username.toUpperCase() === DEV_NAME &&
-    localStorage.getItem("devKey") !== DEV_KEY
-){
-    alert("That username is reserved for the developer.");
-    return;
-}
+setTimeout(()=>{
+    canSend = true;
+},1000);
 
-if(username === "" || text === "") return;
+let username=
+document.getElementById("username").value;
+
+let text=
+document.getElementById("chatInput").value;
+
+
+if(username===""||text==="") return;
+
 
 await client
 .from("messages")
 .insert({
-    username: username,
-    message: text
+username:username,
+message:text
 });
 
-document.getElementById("chatInput").value = "";
-document.getElementById("chatInput").focus();
+
+document.getElementById("chatInput").value="";
 
 }
 
