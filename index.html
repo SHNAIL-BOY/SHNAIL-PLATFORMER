@@ -828,6 +828,13 @@ setTimeout(()=>{
 
 let username=
 document.getElementById("username").value;
+  if (
+  username.toLowerCase() === "shnail" &&
+  localStorage.getItem("devKey") !== "shnailwashere"
+) {
+  alert("That username is reserved.");
+  return;
+}
 
 let text=
 document.getElementById("chatInput").value;
