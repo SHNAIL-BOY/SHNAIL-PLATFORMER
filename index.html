@@ -238,26 +238,23 @@ background:#4CAF50;
 #statsBox{
 
 position:fixed;
-
 left:15px;
 top:15px;
 
 width:290px;
-height:700px;
 
 background:#111;
 
 border:2px solid #4CAF50;
 border-radius:10px;
 
-display:none;
-
 overflow:hidden;
 
 font-family:monospace;
-color:white;
 
 box-shadow:0 0 20px rgba(0,255,0,.25);
+
+color:white;
 
 z-index:999;
 
@@ -270,14 +267,16 @@ background:#1d1d1d;
 padding:10px;
 
 display:flex;
+
 justify-content:space-between;
+
 align-items:center;
 
-border-bottom:1px solid #333;
+font-weight:bold;
 
 color:#7CFF7C;
 
-font-weight:bold;
+border-bottom:1px solid #333;
 
 }
 
@@ -289,11 +288,13 @@ border:none;
 
 color:white;
 
-padding:2px 10px;
-
 cursor:pointer;
 
+padding:4px 9px;
+
 border-radius:4px;
+
+margin-left:4px;
 
 }
 
@@ -305,15 +306,11 @@ background:#555;
 
 #statsContent{
 
-height:calc(100% - 45px);
-
-overflow-y:auto;
-
 background:#181818;
 
 }
 
-    .statRow{
+.statRow{
 
 display:flex;
 
@@ -321,77 +318,25 @@ justify-content:space-between;
 
 align-items:center;
 
-padding:14px;
+padding:13px 16px;
 
-border-bottom:1px solid #2d2d2d;
+border-bottom:1px solid #2a2a2a;
 
-font-size:16px;
-
-transition:.15s;
+font-size:18px;
 
 }
 
-.statRow:hover{
+.statRow:last-child{
 
-background:#222;
-
-}
-
-    .statIcon{
-
-font-size:24px;
-
-width:38px;
-
-text-align:center;
+border-bottom:none;
 
 }
 
-.statName{
+.statRow span:last-child{
 
-flex:1;
-
-padding-left:10px;
-
-color:white;
-
-}
-
-    .statValue{
-
-color:#7CFF7C;
+color:#6dff6d;
 
 font-weight:bold;
-
-}
-
-#enemyPageBtn{
-
-width:100%;
-
-padding:12px;
-
-background:#202020;
-
-border:none;
-
-border-top:1px solid #333;
-
-border-bottom:1px solid #333;
-
-color:#7CFF7C;
-
-font-family:monospace;
-
-cursor:pointer;
-
-font-size:15px;
-
-}
-
-#enemyPageBtn:hover{
-
-background:#2a2a2a;
 
 }
 
@@ -446,97 +391,75 @@ background:#2a2a2a;
   <div class="hudRow">🏆 High: <span id="highScoreText">0</span></div>
 </div>
 
-<div id="statsContent">
+<div id="statsBox">
 
-<div class="statRow">
-<div class="statIcon">⭐</div>
-<div class="statName">Total Score</div>
-<div class="statValue" id="statScore">0</div>
-</div>
+    <div id="statsHeader">
+        <span>📊 STATS</span>
 
-<div class="statRow">
-<div class="statIcon">🏆</div>
-<div class="statName">High Score</div>
-<div class="statValue" id="statHigh">0</div>
-</div>
+        <div>
+            <button id="enemyStatsBtn">👾</button>
+            <button id="statsMinimize">➖</button>
+        </div>
+    </div>
 
-<div class="statRow">
-<div class="statIcon">🪙</div>
-<div class="statName">Coins</div>
-<div class="statValue" id="statCoins">0</div>
-</div>
+    <div id="statsContent">
 
-<div class="statRow">
-<div class="statIcon">👾</div>
-<div class="statName">Enemies</div>
-<div class="statValue" id="statEnemies">0</div>
-</div>
+        <div class="statRow">
+            <span>⭐ Total Score</span>
+            <span id="statScore">0</span>
+        </div>
 
-<div class="statRow">
-<div class="statIcon">🏃</div>
-<div class="statName">Distance</div>
-<div class="statValue" id="statDistance">0 m</div>
-</div>
+        <div class="statRow">
+            <span>🏆 High Score</span>
+            <span id="statHigh">0</span>
+        </div>
 
-<div class="statRow">
-<div class="statIcon">🤸</div>
-<div class="statName">Jumps</div>
-<div class="statValue" id="statJumps">0</div>
-</div>
+        <div class="statRow">
+            <span>🪙 Coins</span>
+            <span id="statCoins">0</span>
+        </div>
 
-<div class="statRow">
-<div class="statIcon">🔫</div>
-<div class="statName">Shots Fired</div>
-<div class="statValue" id="statShots">0</div>
-</div>
+        <div class="statRow">
+            <span>👾 Enemies</span>
+            <span id="statEnemies">0</span>
+        </div>
 
-<div class="statRow">
-<div class="statIcon">💀</div>
-<div class="statName">Deaths</div>
-<div class="statValue" id="statDeaths">0</div>
-</div>
+        <div class="statRow">
+            <span>📏 Distance</span>
+            <span id="statDistance">0m</span>
+        </div>
 
-<div class="statRow">
-<div class="statIcon">📦</div>
-<div class="statName">Ammo Crates</div>
-<div class="statValue" id="statAmmoCrates">0</div>
-</div>
+        <div class="statRow">
+            <span>🦘 Jumps</span>
+            <span id="statJumps">0</span>
+        </div>
 
-<div class="statRow">
-<div class="statIcon">🚩</div>
-<div class="statName">Checkpoints</div>
-<div class="statValue" id="statCheckpoints">0</div>
-</div>
+        <div class="statRow">
+            <span>🔫 Shots Fired</span>
+            <span id="statShots">0</span>
+        </div>
 
-<button id="enemyPageBtn">
+        <div class="statRow">
+            <span>💀 Deaths</span>
+            <span id="statDeaths">0</span>
+        </div>
 
-👾 Enemy Statistics ▼
+        <div class="statRow">
+            <span>📦 Ammo Crates</span>
+            <span id="statAmmo">0</span>
+        </div>
 
-</button>
+        <div class="statRow">
+            <span>🚩 Checkpoints</span>
+            <span id="statCheckpoints">0</span>
+        </div>
 
-<div id="enemyStats" style="display:none">
+        <div class="statRow">
+            <span>⏱ Time Played</span>
+            <span id="statTime">0s</span>
+        </div>
 
-<div class="statRow">
-<div class="statName">Normal</div>
-<div class="statValue" id="statNormal">0</div>
-</div>
-
-<div class="statRow">
-<div class="statName">Shnails</div>
-<div class="statValue" id="statShnail">0</div>
-</div>
-
-<div class="statRow">
-<div class="statName">Turrets</div>
-<div class="statValue" id="statTurret">0</div>
-</div>
-
-<div class="statRow">
-<div class="statName">Jumpers</div>
-<div class="statValue" id="statJumper">0</div>
-</div>
-
-</div>
+    </div>
 
 </div>
 
@@ -1430,6 +1353,25 @@ document.getElementById("enemyPageBtn").onclick = () => {
         enemyStats.style.display === "block"
         ? "none"
         : "block";
+
+};
+
+  const statsContent = document.getElementById("statsContent");
+const statsMinimize = document.getElementById("statsMinimize");
+
+statsMinimize.onclick = () => {
+
+    if(statsContent.style.display === "none"){
+
+        statsContent.style.display = "block";
+        statsMinimize.textContent = "➖";
+
+    }else{
+
+        statsContent.style.display = "none";
+        statsMinimize.textContent = "➕";
+
+    }
 
 };
 
