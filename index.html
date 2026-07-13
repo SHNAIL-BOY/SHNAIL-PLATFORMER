@@ -235,23 +235,29 @@ background:#4CAF50;
     height:45px !important;
 }
 
-    #statsBox{
+#statsBox{
 
 position:fixed;
+
 left:15px;
 top:15px;
-width:260px;
+
+width:290px;
+height:700px;
 
 background:#111;
+
 border:2px solid #4CAF50;
 border-radius:10px;
-
-color:white;
-font-family:monospace;
 
 display:none;
 
 overflow:hidden;
+
+font-family:monospace;
+color:white;
+
+box-shadow:0 0 20px rgba(0,255,0,.25);
 
 z-index:999;
 
@@ -259,47 +265,133 @@ z-index:999;
 
 #statsHeader{
 
+background:#1d1d1d;
+
+padding:10px;
+
 display:flex;
 justify-content:space-between;
 align-items:center;
 
-padding:8px;
+border-bottom:1px solid #333;
 
-background:#1d1d1d;
+color:#7CFF7C;
+
+font-weight:bold;
 
 }
 
 #statsHeader button{
 
 background:#333;
+
 border:none;
+
 color:white;
+
+padding:2px 10px;
+
 cursor:pointer;
+
+border-radius:4px;
+
+}
+
+#statsHeader button:hover{
+
+background:#555;
 
 }
 
 #statsContent{
 
-padding:10px;
+height:calc(100% - 45px);
 
-max-height:420px;
-overflow:auto;
+overflow-y:auto;
+
+background:#181818;
+
+}
+
+    .statRow{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+padding:14px;
+
+border-bottom:1px solid #2d2d2d;
+
+font-size:16px;
+
+transition:.15s;
+
+}
+
+.statRow:hover{
+
+background:#222;
+
+}
+
+    .statIcon{
+
+font-size:24px;
+
+width:38px;
+
+text-align:center;
+
+}
+
+.statName{
+
+flex:1;
+
+padding-left:10px;
+
+color:white;
+
+}
+
+    .statValue{
+
+color:#7CFF7C;
+
+font-weight:bold;
 
 }
 
 #enemyPageBtn{
 
 width:100%;
-margin-top:10px;
 
-background:#2d2d2d;
-color:white;
+padding:12px;
+
+background:#202020;
 
 border:none;
 
-padding:6px;
+border-top:1px solid #333;
+
+border-bottom:1px solid #333;
+
+color:#7CFF7C;
+
+font-family:monospace;
 
 cursor:pointer;
+
+font-size:15px;
+
+}
+
+#enemyPageBtn:hover{
+
+background:#2a2a2a;
 
 }
 
@@ -354,54 +446,94 @@ cursor:pointer;
   <div class="hudRow">🏆 High: <span id="highScoreText">0</span></div>
 </div>
 
-  <button id="statsButton">📊 Stats</button>
-
-<div id="statsPanel" class="collapsed">
-
-<div id="statsHeader">
-📊 Statistics
-<button id="statsCollapse">▼</button>
-</div>
-
 <div id="statsContent">
 
-<div id="generalStats">
-
-<p>⭐ High Score: <span id="statHighScore">0</span></p>
-<p>⭐ Total Score: <span id="statTotalScore">0</span></p>
-<p>🪙 Coins: <span id="statCoins">0</span></p>
-<p>👾 Enemies: <span id="statEnemies">0</span></p>
-<p>📏 Distance: <span id="statDistance">0</span> m</p>
-<p>🏃 Jumps: <span id="statJumps">0</span></p>
-<p>🎯 Shots: <span id="statShots">0</span></p>
-<p>💀 Deaths: <span id="statDeaths">0</span></p>
-<p>⏱️ Time Played: <span id="statTime">0</span>s</p>
-<p>💥 Bullets Hit: <span id="statHits">0</span></p>
-<p>📦 Ammo Crates: <span id="statAmmo">0</span></p>
-<p>🚩 Checkpoints: <span id="statCheckpoints">0</span></p>
-
-<button id="enemyPageButton">
-▶ Enemy Stats
-</button>
-
+<div class="statRow">
+<div class="statIcon">⭐</div>
+<div class="statName">Total Score</div>
+<div class="statValue" id="statScore">0</div>
 </div>
 
-<div id="enemyPage" style="display:none">
+<div class="statRow">
+<div class="statIcon">🏆</div>
+<div class="statName">High Score</div>
+<div class="statValue" id="statHigh">0</div>
+</div>
 
-<p>🐌 Shnails: <span id="statShnails">0</span></p>
-<p>🔴 Normal: <span id="statNormal">0</span></p>
-<p>🟣 Turrets: <span id="statTurrets">0</span></p>
-<p>🔷 Jumpers: <span id="statJumpers">0</span></p>
+<div class="statRow">
+<div class="statIcon">🪙</div>
+<div class="statName">Coins</div>
+<div class="statValue" id="statCoins">0</div>
+</div>
 
-<hr>
+<div class="statRow">
+<div class="statIcon">👾</div>
+<div class="statName">Enemies</div>
+<div class="statValue" id="statEnemies">0</div>
+</div>
 
-<p><b>Total Defeated:</b>
-<span id="statEnemyTotal">0</span></p>
+<div class="statRow">
+<div class="statIcon">🏃</div>
+<div class="statName">Distance</div>
+<div class="statValue" id="statDistance">0 m</div>
+</div>
 
-<button id="backStats">
-◀ Back
+<div class="statRow">
+<div class="statIcon">🤸</div>
+<div class="statName">Jumps</div>
+<div class="statValue" id="statJumps">0</div>
+</div>
+
+<div class="statRow">
+<div class="statIcon">🔫</div>
+<div class="statName">Shots Fired</div>
+<div class="statValue" id="statShots">0</div>
+</div>
+
+<div class="statRow">
+<div class="statIcon">💀</div>
+<div class="statName">Deaths</div>
+<div class="statValue" id="statDeaths">0</div>
+</div>
+
+<div class="statRow">
+<div class="statIcon">📦</div>
+<div class="statName">Ammo Crates</div>
+<div class="statValue" id="statAmmoCrates">0</div>
+</div>
+
+<div class="statRow">
+<div class="statIcon">🚩</div>
+<div class="statName">Checkpoints</div>
+<div class="statValue" id="statCheckpoints">0</div>
+</div>
+
+<button id="enemyPageBtn">
+
+👾 Enemy Statistics ▼
+
 </button>
 
+<div id="enemyStats" style="display:none">
+
+<div class="statRow">
+<div class="statName">Normal</div>
+<div class="statValue" id="statNormal">0</div>
+</div>
+
+<div class="statRow">
+<div class="statName">Shnails</div>
+<div class="statValue" id="statShnail">0</div>
+</div>
+
+<div class="statRow">
+<div class="statName">Turrets</div>
+<div class="statValue" id="statTurret">0</div>
+</div>
+
+<div class="statRow">
+<div class="statName">Jumpers</div>
+<div class="statValue" id="statJumper">0</div>
 </div>
 
 </div>
