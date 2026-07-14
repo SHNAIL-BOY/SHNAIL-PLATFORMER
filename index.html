@@ -235,111 +235,6 @@ background:#4CAF50;
     height:45px !important;
 }
 
-#statsBox{
-
-position:fixed;
-left:15px;
-top:15px;
-
-width:290px;
-
-background:#111;
-
-border:2px solid #4CAF50;
-border-radius:10px;
-
-overflow:hidden;
-
-font-family:monospace;
-
-box-shadow:0 0 20px rgba(0,255,0,.25);
-
-color:white;
-
-z-index:999;
-
-}
-
-#statsHeader{
-
-background:#1d1d1d;
-
-padding:10px;
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-font-weight:bold;
-
-color:#7CFF7C;
-
-border-bottom:1px solid #333;
-
-}
-
-#statsHeader button{
-
-background:#333;
-
-border:none;
-
-color:white;
-
-cursor:pointer;
-
-padding:4px 9px;
-
-border-radius:4px;
-
-margin-left:4px;
-
-}
-
-#statsHeader button:hover{
-
-background:#555;
-
-}
-
-#statsContent{
-
-background:#181818;
-
-}
-
-.statRow{
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-padding:13px 16px;
-
-border-bottom:1px solid #2a2a2a;
-
-font-size:18px;
-
-}
-
-.statRow:last-child{
-
-border-bottom:none;
-
-}
-
-.statRow span:last-child{
-
-color:#6dff6d;
-
-font-weight:bold;
-
-}
-
     .hudRow{ margin-bottom:5px; font-size:10px; }
     .bar{ width:100%; height:6px; background:#333; margin-top:2px; }
     #ammoBar{ height:100%; width:100%; background:orange; }
@@ -391,78 +286,6 @@ font-weight:bold;
   <div class="hudRow">🏆 High: <span id="highScoreText">0</span></div>
 </div>
 
-<div id="statsBox">
-
-    <div id="statsHeader">
-        <span>📊 STATS</span>
-
-        <div>
-            <button id="enemyStatsBtn">👾</button>
-            <button id="statsMinimize">➖</button>
-        </div>
-    </div>
-
-    <div id="statsContent">
-
-        <div class="statRow">
-            <span>⭐ Total Score</span>
-            <span id="statScore">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>🏆 High Score</span>
-            <span id="statHigh">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>🪙 Coins</span>
-            <span id="statCoins">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>👾 Enemies</span>
-            <span id="statEnemies">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>📏 Distance</span>
-            <span id="statDistance">0m</span>
-        </div>
-
-        <div class="statRow">
-            <span>🦘 Jumps</span>
-            <span id="statJumps">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>🔫 Shots Fired</span>
-            <span id="statShots">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>💀 Deaths</span>
-            <span id="statDeaths">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>📦 Ammo Crates</span>
-            <span id="statAmmo">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>🚩 Checkpoints</span>
-            <span id="statCheckpoints">0</span>
-        </div>
-
-        <div class="statRow">
-            <span>⏱ Time Played</span>
-            <span id="statTime">0s</span>
-        </div>
-
-    </div>
-
-</div>
-
 <div id="controlsBox">
 <b>CONTROLS</b><br><br>
 Move: WASD / Arrows<br>
@@ -474,7 +297,6 @@ Pause: esc<br>
 Toggle Menu: I<br>
 #shnails4life
 </div>
-  
 
 <script>
 let paused = false;
@@ -499,26 +321,6 @@ let particles = [];
 
 let worldX = 0;
 let score = 0;
-
-  let stats = {
-
-coins:0,
-
-deaths:0,
-
-jumps:0,
-
-shots:0,
-
-normal:0,
-
-shnail:0,
-
-turret:0,
-
-jumper:0
-
-};
 
 let highScore = Number(localStorage.getItem("shnailHighScore") || 0);
 
@@ -575,7 +377,6 @@ document.addEventListener("keydown",e=>{
   if(e.code==="KeyF" && player.ammo>0){
     bullets.push({x:player.x+15,y:player.y+15,dx:player.facing*6});
     player.ammo--;
-    stats.shots++;
   }
 
   if(e.code==="Space" || e.code==="KeyW" || e.code==="ArrowUp"){
@@ -617,7 +418,6 @@ function handleGamepad(){
     if(player.shootCooldown <= 0){
       bullets.push({x:player.x+15,y:player.y+15,dx:player.facing*6});
       player.ammo--;
-      stats.shots++;
       player.shootCooldown = 10;
     }
   }
@@ -777,7 +577,6 @@ function update(){
   if(jumpBuffer > 0){
     if(coyoteTime > 0 || player.jumps < 2){
       player.dy = -player.jump;
-      stats.jumps++;
       player.jumps++;
       jumpBuffer = 0;
       coyoteTime = 0;
@@ -883,30 +682,15 @@ if(e.type === "jumper"){
 
         if(e.type==="shnail" || e.type==="turret" || e.type==="jumper"){
           e.hp--;
-if(e.hp<=0){
-
-    spawnParticles(e.x,e.y,"green");
-
-    if(e.type==="shnail") stats.shnail++;
-    if(e.type==="turret") stats.turret++;
-    if(e.type==="jumper") stats.jumper++;
-    if(e.type==="normal") stats.normal++;
-
-    e.dead=true;
-
-    addScore(e.type==="turret"?30:20);
-
-}
-          
-} else {
-
-    stats.normal++;
-
-    e.dead=true;
-
-    addScore(10);
-
-}
+          if(e.hp<=0){
+            spawnParticles(e.x,e.y,"green");
+            e.dead=true;
+            addScore(e.type==="turret"?30:20);
+          }
+        } else {
+          e.dead=true;
+          addScore(10);
+        }
 
         b.dead = true;
         break;
@@ -920,7 +704,6 @@ if(e.hp<=0){
   coins.forEach(c=>{
     if(!c.taken && rect(player,{x:c.x,y:c.y,w:10,h:10})){
       c.taken=true;
-      stats.coins++;
       addScore(5);
     }
   });
@@ -942,17 +725,15 @@ if(e.hp<=0){
   let targetCamera = player.x - 200;
   cameraX += (targetCamera - cameraX) * 0.1;
 
-applyShake();
-updateParticles();
-updateHUD();
-updateStats();
+  applyShake();
+  updateParticles();
+  updateHUD();
 
   draw();
   requestAnimationFrame(update);
 }
 
 function respawn(){
-  stats.deaths++;
   player.x=player.spawnX;
   player.y=player.spawnY;
   player.dx=0;
@@ -1069,41 +850,6 @@ else{ ctx.fillStyle="red";
   ctx.font = "14px monospace";
   ctx.fillText("Press ESC to resume", canvas.width/2 - 100, canvas.height/2 + 30);
 }
-
-  function updateStats(){
-
-document.getElementById("statScore").textContent = score;
-document.getElementById("statHigh").textContent = highScore;
-
-document.getElementById("statCoins").textContent = stats.coins;
-document.getElementById("statDeaths").textContent = stats.deaths;
-document.getElementById("statJumps").textContent = stats.jumps;
-document.getElementById("statShots").textContent = stats.shots;
-
-document.getElementById("statNormal").textContent = stats.normal;
-document.getElementById("statShnail").textContent = stats.shnail;
-document.getElementById("statTurret").textContent = stats.turret;
-document.getElementById("statJumper").textContent = stats.jumper;
-
-document.getElementById("statEnemies").textContent =
-stats.normal +
-stats.shnail +
-stats.turret +
-stats.jumper;
-
-}
-
-  function toggleStats(){
-
-const box = document.getElementById("statsBox");
-
-box.style.display =
-box.style.display === "block"
-? "none"
-: "block";
-
-}
-  
 </script>
 
 <script>
@@ -1342,38 +1088,6 @@ document.addEventListener("mousemove", e => {
 
     chatBox.style.height = newHeight + "px";
 });
-
-  document.getElementById("statsBtn").onclick = toggleStats;
-
-document.getElementById("enemyPageBtn").onclick = () => {
-
-    const enemyStats = document.getElementById("enemyStats");
-
-    enemyStats.style.display =
-        enemyStats.style.display === "block"
-        ? "none"
-        : "block";
-
-};
-
-  const statsContent = document.getElementById("statsContent");
-const statsMinimize = document.getElementById("statsMinimize");
-
-statsMinimize.onclick = () => {
-
-    if(statsContent.style.display === "none"){
-
-        statsContent.style.display = "block";
-        statsMinimize.textContent = "➖";
-
-    }else{
-
-        statsContent.style.display = "none";
-        statsMinimize.textContent = "➕";
-
-    }
-
-};
 
 </script>
   
