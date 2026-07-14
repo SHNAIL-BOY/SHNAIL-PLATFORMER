@@ -323,7 +323,6 @@ let particles = [];
 
 let worldX = 0;
 let score = 0;
-let biome = "forest";
 
 let highScore = Number(localStorage.getItem("shnailHighScore") || 0);
 
@@ -485,31 +484,15 @@ function generateChunk(){
     if(Math.random()<0.95){
       let r = Math.random();
 
-if(r < 0.2){
-
-    enemies.push({
-
-        x,
-
-        y:y-20,
-
-        w: biome=="volcano" ? 26 : 20,
-
-        h: biome=="volcano" ? 26 : 20,
-
-        dx:0,
-
-        dy:0,
-
-        type: biome=="volcano" ? "fireTurret" : "turret",
-
-        hp: biome=="volcano" ? 5 : 3,
-
-        shootTimer: biome=="volcano" ? 35 : 60
-
-    });
-
-}else if(r < 0.45){
+      if(r < 0.2){
+        enemies.push({
+          x,y:y-20,w:20,h:20,
+          dx:0,dy:0,
+          type:"turret",
+          hp:3,
+          shootTimer:60
+        });
+      } else if(r < 0.45){
         enemies.push({
           x,y:y-18,w:24,h:18,
           dx:(Math.random()<0.5?-1:1)*0.6,
@@ -554,12 +537,6 @@ function update(){
 }
   
   handleGamepad();
-
-  if(player.x > 5000){
-    biome = "volcano";
-}else{
-    biome = "forest";
-}
 
   if(player.x>worldX-400) generateChunk();
 
@@ -633,7 +610,7 @@ if(e.type === "jumper"){
   }
 }
     
-     if(e.type=="turret" || e.type=="fireTurret"){
+    if(e.type === "turret"){
       e.shootTimer--;
       if(e.shootTimer <= 0){
         let dx = player.x - e.x;
@@ -641,45 +618,11 @@ if(e.type === "jumper"){
         let len = Math.hypot(dx,dy);
         dx/=len; dy/=len;
 
-if(e.type=="turret"){
-
-    enemyBullets.push({
-
-        x:e.x+e.w/2,
-
-        y:e.y+e.h/2,
-
-        dx:dx*3,
-
-        dy:dy*3
-
-    });
-
-}else{
-
-    const speed = 3;
-
-    [-0.25,0,0.25].forEach(offset=>{
-
-        const angle = Math.atan2(dy,dx)+offset;
-
         enemyBullets.push({
-
-            x:e.x+e.w/2,
-
-            y:e.y+e.h/2,
-
-            dx:Math.cos(angle)*speed,
-
-            dy:Math.sin(angle)*speed,
-
-            fire:true
-
+          x:e.x+e.w/2,
+          y:e.y+e.h/2,
+          dx:dx*3, dy:dy*3
         });
-
-    });
-
-}
 
         e.shootTimer = 90;
       }
@@ -803,12 +746,6 @@ function draw(){
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.fillStyle = biome=="volcano"
-    ? "#2b0000"
-    : "#87CEEB";
-
-ctx.fillRect(0,0,canvas.width,canvas.height);
-
   if(flash > 0){
     ctx.fillStyle="rgba(255,255,255,0.2)";
     ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -856,49 +793,19 @@ ctx.fillRect(0,0,canvas.width,canvas.height);
   let eyeX = e.dx >= 0 ? e.x + 14 : e.x + 4;
   ctx.fillRect(eyeX, e.y+5, 3, 3);
 }
-else if(e.type==="turret"){
-
-    ctx.fillStyle="purple";
-    ctx.fillRect(e.x,e.y,e.w,e.h);
-
-    ctx.fillStyle="violet";
-    ctx.fillRect(e.x+e.w,e.y+6,8,4);
-
-}
-else if(e.type==="fireTurret"){
-
-    ctx.fillStyle="#661100";
-    ctx.fillRect(e.x,e.y,e.w,e.h);
-
-    ctx.fillStyle="orange";
-    ctx.fillRect(e.x+e.w,e.y+8,10,6);
-
-    ctx.fillStyle="yellow";
-    ctx.fillRect(e.x+8,e.y+8,4,4);
-
-}
+    else if(e.type==="turret"){
+      ctx.fillStyle="purple";
+      ctx.fillRect(e.x,e.y,e.w,e.h);
+      ctx.fillStyle="violet";
+      ctx.fillRect(e.x+e.w, e.y+6, 8, 4);
+    }
 else{ ctx.fillStyle="red"; 
       ctx.fillRect(e.x,e.y,e.w,e.h); } });
 
-enemyBullets.forEach(b=>{
-
-    ctx.fillStyle = b.fire ? "#ff5500" : "violet";
-
-    ctx.beginPath();
-    ctx.arc(b.x,b.y,4,0,Math.PI*2);
-    ctx.fill();
-
-    if(b.fire){
-
-        ctx.fillStyle="yellow";
-
-        ctx.beginPath();
-        ctx.arc(b.x,b.y,2,0,Math.PI*2);
-        ctx.fill();
-
-    }
-
-});
+  enemyBullets.forEach(b=>{
+    ctx.fillStyle="violet";
+    ctx.fillRect(b.x,b.y,6,6);
+  });
 
   checkpoints.forEach(cp=>{
     ctx.fillStyle="blue";
