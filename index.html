@@ -718,11 +718,12 @@ if(e.type === "jumper"){
         dx/=len; dy/=len;
 
         enemyBullets.push({
-          sfxTurret();
           x:e.x+e.w/2,
           y:e.y+e.h/2,
           dx:dx*3, dy:dy*3
         });
+
+        sfxTurret();
 
         e.shootTimer = 90;
       }
