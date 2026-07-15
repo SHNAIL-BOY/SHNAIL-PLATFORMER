@@ -321,11 +321,93 @@ const box = document.getElementById("controlsBox");
 const menu = document.getElementById("mainMenu");
 
 function startGame(){
+  audioCtx.resume();
   menu.style.display="none";
   update();
-}//globals
+}
+//globals
 
 const gravity = 0.5;
+
+  //SFX
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function beep(freq, duration, type="square", volume=0.08){
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = type;
+    osc.frequency.value = freq;
+
+    gain.gain.value = volume;
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        audioCtx.currentTime + duration
+    );
+
+    osc.stop(audioCtx.currentTime + duration);
+
+}
+
+  function sfxJump(){
+
+    beep(520,0.08,"square");
+    setTimeout(()=>beep(720,0.05,"square"),25);
+
+}
+
+function sfxShoot(){
+
+    beep(220,0.04,"sawtooth");
+    setTimeout(()=>beep(170,0.04,"sawtooth"),20);
+
+}
+
+function sfxCoin(){
+
+    beep(900,0.05,"triangle");
+    setTimeout(()=>beep(1200,0.08,"triangle"),40);
+
+}
+
+function sfxEnemy(){
+
+    beep(180,0.10,"square");
+    setTimeout(()=>beep(90,0.12,"square"),50);
+
+}
+
+function sfxDash(){
+
+    beep(300,0.03,"sawtooth");
+    setTimeout(()=>beep(500,0.03,"sawtooth"),20);
+    setTimeout(()=>beep(800,0.03,"sawtooth"),40);
+
+}
+
+function sfxDeath(){
+
+    beep(400,0.10,"square");
+    setTimeout(()=>beep(250,0.12,"square"),60);
+    setTimeout(()=>beep(120,0.18,"square"),120);
+
+}
+
+function sfxTurret(){
+
+    beep(120,0.04,"triangle");
+    setTimeout(()=>beep(120,0.04,"triangle"),50);
+    setTimeout(()=>beep(120,0.04,"triangle"),100);
+
+}
 
 let cameraX = 0;
 let shake = 0;
@@ -392,6 +474,7 @@ document.addEventListener("keydown",e=>{
   if(e.code==="KeyF" && player.ammo>0){
     bullets.push({x:player.x+15,y:player.y+15,dx:player.facing*6});
     player.ammo--;
+    sfxShoot();
   }
 
   if(e.code==="Space" || e.code==="KeyW" || e.code==="ArrowUp"){
@@ -433,6 +516,7 @@ function handleGamepad(){
     if(player.shootCooldown <= 0){
       bullets.push({x:player.x+15,y:player.y+15,dx:player.facing*6});
       player.ammo--;
+      sfxShoot();
       player.shootCooldown = 10;
     }
   }
@@ -592,6 +676,7 @@ function update(){
   if(jumpBuffer > 0){
     if(coyoteTime > 0 || player.jumps < 2){
       player.dy = -player.jump;
+      sfxJump();
       player.jumps++;
       jumpBuffer = 0;
       coyoteTime = 0;
@@ -601,6 +686,7 @@ function update(){
 
   if((keys["ShiftLeft"]||keys["ShiftRight"]) && player.dash<=0){
     player.dx=player.facing*10;
+    sfxDash();
     player.dash=60;
   }
 
@@ -632,6 +718,7 @@ if(e.type === "jumper"){
         dx/=len; dy/=len;
 
         enemyBullets.push({
+          sfxTurret();
           x:e.x+e.w/2,
           y:e.y+e.h/2,
           dx:dx*3, dy:dy*3
@@ -704,6 +791,7 @@ if(e.type === "jumper"){
           }
         } else {
           e.dead=true;
+          sfxEnemy();
           addScore(10);
         }
 
@@ -719,6 +807,7 @@ if(e.type === "jumper"){
   coins.forEach(c=>{
     if(!c.taken && rect(player,{x:c.x,y:c.y,w:10,h:10})){
       c.taken=true;
+      sfxCoin();
       addScore(5);
     }
   });
@@ -749,6 +838,7 @@ if(e.type === "jumper"){
 }
 
 function respawn(){
+  sfxDeath();
   player.x=player.spawnX;
   player.y=player.spawnY;
   player.dx=0;
