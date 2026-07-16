@@ -578,7 +578,7 @@ function generateChunk(){
 
     platforms.push({x,y,w:100,h:20});
 
-// 👑 King Shnail (10% chance)
+// 👑 King Shnail
 if(Math.random() < 0.10){
 
     enemies.push({
@@ -762,12 +762,23 @@ if(e.type === "jumper"){
       }
     });
 
-    if(platformUnder && e.dx!==0){
-      let frontX = e.dx>0 ? e.x+e.w+2 : e.x-2;
-      if(frontX < platformUnder.x || frontX > platformUnder.x+platformUnder.w){
-        e.dx*=-1;
-      }
+if(platformUnder && e.dx !== 0){
+
+    let checkX = e.dx > 0
+        ? e.x + e.w + 6
+        : e.x - 6;
+
+    let groundAhead = platforms.some(p =>
+        checkX >= p.x &&
+        checkX <= p.x + p.w &&
+        Math.abs(p.y - (e.y + e.h)) < 6
+    );
+
+    if(!groundAhead){
+        e.dx *= -1;
     }
+
+}
 
     if(rect(player,e)){
       addShake(10);
