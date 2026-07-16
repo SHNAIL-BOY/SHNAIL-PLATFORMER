@@ -685,7 +685,7 @@ function update(){
   }
 
   if((keys["ShiftLeft"]||keys["ShiftRight"]) && player.dash<=0){
-    player.dx=player.facing*10;
+    player.dx=player.facing*30;
     sfxDash();
     player.dash=60;
   }
