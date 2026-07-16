@@ -273,7 +273,7 @@ background:#4CAF50;
 </div>
 
 <div id="mainMenu">
-<h1>SHNAIL-PLATFORMER</h1>
+<h1>SHNAIL PLATFORMER</h1>
 <button id="startButton" onclick="startGame()">START</button>
 </div>
 
@@ -578,23 +578,6 @@ function generateChunk(){
 
     platforms.push({x,y,w:100,h:20});
 
-// 👑 King Shnail
-if(Math.random() < 0.10){
-
-    enemies.push({
-        x,
-        y: y - 32,
-        w: 40,
-        h: 30,
-        dx: (Math.random()<0.5 ? -1 : 1) * 0.5,
-        dy: 0,
-        type: "king",
-        hp: 10
-    });
-
-    continue;
-}
-                    
     if(Math.random()<0.95){
       let r = Math.random();
 
@@ -713,13 +696,6 @@ function update(){
     e.dy+=gravity;
     e.x+=e.dx;
     e.y+=e.dy;
-
-    if(e.type==="king"){
-
-    e.dx *= 0.995;
-
-}
-    
 if(e.type === "jumper"){
   e.jumpTimer--;
 
@@ -762,23 +738,12 @@ if(e.type === "jumper"){
       }
     });
 
-if(platformUnder && e.dx !== 0){
-
-    let checkX = e.dx > 0
-        ? e.x + e.w + 6
-        : e.x - 6;
-
-    let groundAhead = platforms.some(p =>
-        checkX >= p.x &&
-        checkX <= p.x + p.w &&
-        Math.abs(p.y - (e.y + e.h)) < 6
-    );
-
-    if(!groundAhead){
-        e.dx *= -1;
+    if(platformUnder && e.dx!==0){
+      let frontX = e.dx>0 ? e.x+e.w+2 : e.x-2;
+      if(frontX < platformUnder.x || frontX > platformUnder.x+platformUnder.w){
+        e.dx*=-1;
+      }
     }
-
-}
 
     if(rect(player,e)){
       addShake(10);
@@ -818,39 +783,13 @@ if(platformUnder && e.dx !== 0){
         flash = 6;
         spawnParticles(e.x,e.y,"lime");
 
-if(e.type==="shnail" || e.type==="turret" || e.type==="jumper" || e.type==="king"){
+        if(e.type==="shnail" || e.type==="turret" || e.type==="jumper"){
           e.hp--;
-  if(e.hp<=0){
-
-    spawnParticles(e.x,e.y,"green");
-
-    e.dead = true;
-
-    if(e.type === "king"){
-
-        addShake(20);
-        flash = 20;
-
-        spawnParticles(
-            e.x + e.w/2,
-            e.y + e.h/2,
-            "gold",
-            40
-        );
-
-        addScore(250);
-
-    }else{
-
-        if(e.type==="turret")
-            addScore(30);
-        else
-            addScore(20);
-
-    }
-
-}
-
+          if(e.hp<=0){
+            spawnParticles(e.x,e.y,"green");
+            e.dead=true;
+            addScore(e.type==="turret"?30:20);
+          }
         } else {
           e.dead=true;
           sfxEnemy();
@@ -933,43 +872,7 @@ function draw(){
   });
 
   enemies.forEach(e=>{
-if(e.type==="king"){
-
-    ctx.save();
-
-    if(e.dx < 0){
-        ctx.scale(-1,1);
-        ctx.translate(-e.x*2-e.w,0);
-    }
-
-    // Shell
-    ctx.fillStyle = "gold";
-    ctx.fillRect(e.x, e.y-8, 18, 18);
-
-    // Head
-    ctx.fillStyle = "#d4af37";
-    ctx.fillRect(e.x+8, e.y, 8, 8);
-
-    // Body
-    ctx.fillStyle = "#b8860b";
-    ctx.fillRect(e.x+10, e.y+8, e.w, 14);
-
-    // Eyes
-    ctx.fillStyle = "black";
-    ctx.fillRect(e.x+e.w+5, e.y+5, 2, 2);
-    ctx.fillRect(e.x+e.w+9, e.y+5, 2, 2);
-
-    // Crown
-    ctx.fillStyle = "yellow";
-    ctx.fillRect(e.x+6, e.y-16, 12, 6);
-    ctx.fillRect(e.x+7, e.y-20, 2, 4);
-    ctx.fillRect(e.x+11, e.y-22, 2, 6);
-    ctx.fillRect(e.x+15, e.y-20, 2, 4);
-
-    ctx.restore();
-
-}
-else if(e.type==="shnail"){
+    if(e.type==="shnail"){
       ctx.save();
       if(e.dx<0){
         ctx.scale(-1,1);
