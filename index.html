@@ -949,16 +949,29 @@ function draw(){
     }
       else if(e.type==="dasher"){
 
-      ctx.fillStyle="orchid";
-      ctx.fillRect(e.x,e.y-4,12,12);
-      ctx.fillStyle="purple";
-      ctx.fillRect(e.x+4,e.y,4,4);
-      ctx.fillStyle="darkorchid";
-      ctx.fillRect(e.x+6,e.y+6,e.w,10);
-      ctx.fillRect(e.x+e.w+4,e.y+4,2,4);
-      ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
-      ctx.restore();
+else if(e.type==="dasher"){
+    ctx.save();
+
+    if(e.dx<0){
+        ctx.scale(-1,1);
+        ctx.translate(-e.x*2-e.w,0);
     }
+
+    ctx.fillStyle="orchid";
+    ctx.fillRect(e.x,e.y-4,12,12);
+
+    ctx.fillStyle="purple"; 
+    ctx.fillRect(e.x+4,e.y,4,4);
+
+    ctx.fillStyle="darkorchid";
+    ctx.fillRect(e.x+6,e.y+6,e.w,10);
+
+    ctx.fillRect(e.x+e.w+4,e.y+4,2,4);
+    ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
+
+    ctx.restore();
+}
+        
 else{ ctx.fillStyle="red"; 
       ctx.fillRect(e.x,e.y,e.w,e.h); } });
 
