@@ -949,8 +949,12 @@ function draw(){
     }
       else if(e.type==="dasher"){
 
-    ctx.fillStyle="darkorchid";
-    ctx.fillRect(e.x,e.y,e.w,e.h);
+ctx.fillStyle = "orchid";
+ctx.fillRect(e.x,e.y,e.w,e.h);
+
+ctx.fillRect(e.x+4,e.y+4,16,4);
+
+ctx.fillRect(e.x+16,e.y+8,3,3);
 
 }
 else{ ctx.fillStyle="red"; 
