@@ -949,14 +949,16 @@ function draw(){
     }
       else if(e.type==="dasher"){
 
-ctx.fillStyle = "orchid";
-ctx.fillRect(e.x,e.y,e.w,e.h);
-
-ctx.fillRect(e.x+4,e.y+4,16,4);
-
-ctx.fillRect(e.x+16,e.y+8,3,3);
-
-}
+      ctx.fillStyle="orchid";
+      ctx.fillRect(e.x,e.y-4,12,12);
+      ctx.fillStyle="purple";
+      ctx.fillRect(e.x+4,e.y,4,4);
+      ctx.fillStyle="darkorchid";
+      ctx.fillRect(e.x+6,e.y+6,e.w,10);
+      ctx.fillRect(e.x+e.w+4,e.y+4,2,4);
+      ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
+      ctx.restore();
+    }
 else{ ctx.fillStyle="red"; 
       ctx.fillRect(e.x,e.y,e.w,e.h); } });
 
