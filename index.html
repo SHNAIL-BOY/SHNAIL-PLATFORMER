@@ -610,7 +610,7 @@ function generateChunk(){
     h:18,
     dx:0,
     dy:0,
-    type:"dasher",
+    type:"runner",
     hp:1,
     dashCooldown:80,
     dashing:false
@@ -742,7 +742,7 @@ if(e.type === "jumper"){
       }
     }
     
-if(e.type === "dasher"){
+if(e.type === "runner"){
 
     e.dashCooldown--;
 
@@ -826,7 +826,7 @@ if(
     e.type==="shnail" ||
     e.type==="turret" ||
     e.type==="jumper" ||
-    e.type==="dasher"
+    e.type==="runner"
 ){
           e.hp--;
           if(e.hp<=0){
@@ -947,7 +947,7 @@ function draw(){
       ctx.fillStyle="violet";
       ctx.fillRect(e.x+e.w, e.y+6, 8, 4);
     }
-      else if(e.type==="dasher"){
+      else if(e.type==="runner"){
     ctx.save();
 
     if(e.dx<0){
