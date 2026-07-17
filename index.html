@@ -947,9 +947,7 @@ function draw(){
       ctx.fillStyle="violet";
       ctx.fillRect(e.x+e.w, e.y+6, 8, 4);
     }
-      else if(e.type==="dasher"){
-
-else if(e.type==="dasher"){
+  else if(e.type==="dasher"){
      ctx.save();
       if(e.dx<0){
         ctx.scale(-1,1);
@@ -965,7 +963,6 @@ else if(e.type==="dasher"){
       ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
       ctx.restore();
     }
-  
         
 else{ ctx.fillStyle="red"; 
       ctx.fillRect(e.x,e.y,e.w,e.h); } });
