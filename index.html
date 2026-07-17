@@ -602,6 +602,19 @@ function generateChunk(){
     dy:0,
     type:"normal"
   });
+} else if(r < 0.85){
+  enemies.push({
+    x,
+    y:y-20,
+    w:24,
+    h:18,
+    dx:0,
+    dy:0,
+    type:"dasher",
+    hp:3,
+    dashCooldown:80,
+    dashing:false
+  });
 } else {
   enemies.push({
     x,y:y-20,w:22,h:22,
@@ -728,6 +741,35 @@ if(e.type === "jumper"){
         e.shootTimer = 90;
       }
     }
+    
+    if(e.type === "dasher"){
+
+    e.dashCooldown--;
+
+    if(e.dashCooldown <= 0){
+
+        let dx = player.x - e.x;
+
+        if(Math.abs(dx) < 220){
+
+            e.dx = dx > 0 ? 6 : -6;
+            e.dashing = true;
+            e.dashCooldown = 120;
+
+        }
+
+    }
+
+    if(e.dashing){
+        e.dx *= 0.98;
+
+        if(Math.abs(e.dx) < 0.5){
+            e.dx = 0;
+            e.dashing = false;
+        }
+    }
+
+}
 
     let platformUnder=null;
     platforms.forEach(p=>{
@@ -783,7 +825,12 @@ if(e.type === "jumper"){
         flash = 6;
         spawnParticles(e.x,e.y,"lime");
 
-        if(e.type==="shnail" || e.type==="turret" || e.type==="jumper"){
+if(
+    e.type==="shnail" ||
+    e.type==="turret" ||
+    e.type==="jumper" ||
+    e.type==="dasher"
+){
           e.hp--;
           if(e.hp<=0){
             spawnParticles(e.x,e.y,"green");
@@ -892,7 +939,7 @@ function draw(){
   ctx.fillStyle="cyan";
   ctx.fillRect(e.x,e.y,e.w,e.h);
 
-  // little eyes (direction hint)
+  // eye
   ctx.fillStyle="black";
   let eyeX = e.dx >= 0 ? e.x + 14 : e.x + 4;
   ctx.fillRect(eyeX, e.y+5, 3, 3);
@@ -903,6 +950,20 @@ function draw(){
       ctx.fillStyle="violet";
       ctx.fillRect(e.x+e.w, e.y+6, 8, 4);
     }
+      else if(e.type==="dasher"){
+
+    ctx.fillStyle="orange";
+    ctx.fillRect(e.x,e.y,e.w,e.h);
+
+    ctx.fillStyle="red";
+    ctx.fillRect(e.x+4,e.y+4,16,4);
+
+    // eyes
+    ctx.fillStyle="white";
+    let eye = e.dx >= 0 ? e.x+16 : e.x+4;
+    ctx.fillRect(eye,e.y+8,3,3);
+
+}
 else{ ctx.fillStyle="red"; 
       ctx.fillRect(e.x,e.y,e.w,e.h); } });
 
