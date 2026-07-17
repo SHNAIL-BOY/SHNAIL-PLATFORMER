@@ -949,16 +949,8 @@ function draw(){
     }
       else if(e.type==="dasher"){
 
-    ctx.fillStyle="orange";
+    ctx.fillStyle="darkorchid";
     ctx.fillRect(e.x,e.y,e.w,e.h);
-
-    ctx.fillStyle="red";
-    ctx.fillRect(e.x+4,e.y+4,16,4);
-
-    // eyes
-    ctx.fillStyle="white";
-    let eye = e.dx >= 0 ? e.x+16 : e.x+4;
-    ctx.fillRect(eye,e.y+8,3,3);
 
 }
 else{ ctx.fillStyle="red"; 
