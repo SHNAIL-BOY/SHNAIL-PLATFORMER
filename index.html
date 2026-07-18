@@ -777,7 +777,7 @@ if(e.type === "runner"){
       }
     });
 
-if(platformUnder && e.dx!==0 && e.type !== "dasher"){
+if(platformUnder && e.dx!==0 && e.type !== "runner"){
     let frontX = e.dx>0 ? e.x+e.w+2 : e.x-2;
     if(frontX < platformUnder.x || frontX > platformUnder.x+platformUnder.w){
         e.dx *= -1;
