@@ -580,7 +580,7 @@ function handleGamepad(){
   if(pressed(3)) jumpBuffer = 6;
 
   if(pressed(2) && player.dash <= 0){
-    player.dx = player.facing * 10;
+    player.dx = player.facing * 30;
     player.dash = 60;
   }
 
