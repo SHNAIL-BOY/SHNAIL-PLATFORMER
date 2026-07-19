@@ -275,6 +275,30 @@ background:#4CAF50;
     transform:scale(.95);
 }
 
+    #discordBtn::after{
+    content:"Join our Discord";
+    position:absolute;
+    left:65px;
+    white-space:nowrap;
+
+    background:#111;
+    color:#2ed84b;
+
+    border:1px solid #2ed84b;
+    border-radius:6px;
+
+    padding:6px 10px;
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:.15s;
+}
+
+#discordBtn:hover::after{
+    opacity:1;
+}
+
     #discordBtn img{
     width:30px;
     height:30px;
