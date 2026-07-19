@@ -300,7 +300,7 @@ background:#4CAF50;
 }
 
     #discordBtn img{
-    width:30px;
+    width:35px;
     height:30px;
 }
 
@@ -398,7 +398,6 @@ function startGame(){
   menu.style.display="none";
   update();
 }
-//globals
 
 const gravity = 0.5;
 
@@ -502,6 +501,9 @@ function addScore(amount){
   }
 }
 
+let debugMode = false;
+let noclip = false;
+
 let coyoteTime = 0;
 let jumpBuffer = 0;
 
@@ -544,8 +546,9 @@ document.addEventListener("keydown",e=>{
   if(e.code==="KeyI")
     box.style.display = box.style.display==="none"?"block":"none";
 
-  if(e.code==="KeyF" && player.ammo>0){
+  if(e.code==="KeyF" && player.ammo>0 || debugMode){
     bullets.push({x:player.x+15,y:player.y+15,dx:player.facing*6});
+    if(!debugMode)
     player.ammo--;
     sfxShoot();
   }
@@ -553,6 +556,23 @@ document.addEventListener("keydown",e=>{
   if(e.code==="Space" || e.code==="KeyW" || e.code==="ArrowUp"){
     jumpBuffer = 6;
   }
+  
+});
+
+  document.addEventListener("keydown",e=>{
+
+    if(
+        e.ctrlKey &&
+        e.shiftKey &&
+        e.code==="KeyD"
+    ){
+        debugMode = !debugMode;
+        console.log(
+            "Debug Mode:",
+            debugMode ? "ON" : "OFF"
+        );
+    }
+
 });
 
 document.addEventListener("keyup",e=>keys[e.code]=false);
@@ -729,6 +749,13 @@ function update(){
     player.dx=-player.speed; player.facing=-1;
   } else player.dx*=0.8;
 
+  if(debugMode){
+
+    if(keys["Digit1"])
+        player.x += 500;
+
+}
+
   player.dy+=gravity;
   player.x+=player.dx;
   player.y+=player.dy;
@@ -776,7 +803,26 @@ function update(){
     player.dash=60;
   }
 
-  if(player.dash>0) player.dash--;
+  if(!debugMode){
+
+    if(player.dash>0)
+        player.dash--;
+
+}else{
+
+    player.dash = 0;
+
+}
+
+  if(debugMode){
+
+    if(keys["KeyQ"])
+        player.y -= 5;
+
+    if(keys["KeyE"])
+        player.y += 5;
+
+}
 
   enemies.forEach(e=>{
     e.dy+=gravity;
@@ -857,7 +903,7 @@ if(platformUnder && e.dx!==0 && e.type !== "runner"){
     }
 }
 
-    if(rect(player,e)){
+    if(rect(player,e) && !debugMode){
       addShake(10);
       flash = 10;
       spawnParticles(player.x,player.y,"white");
@@ -1077,6 +1123,32 @@ else{ ctx.fillStyle="red";
   ctx.fillStyle="lightgreen";
   ctx.fillRect(player.x,player.y,player.w,player.h);
 
+  if(debugMode){
+
+    ctx.strokeStyle="red";
+
+    enemies.forEach(e=>{
+
+        ctx.strokeRect(
+            e.x,
+            e.y,
+            e.w,
+            e.h
+        );
+
+    });
+
+    ctx.strokeStyle="cyan";
+
+    ctx.strokeRect(
+        player.x,
+        player.y,
+        player.w,
+        player.h
+    );
+
+}
+
   ctx.restore();
 
   ctx.fillStyle="green";
@@ -1084,6 +1156,44 @@ else{ ctx.fillStyle="red";
   ctx.fillText("Ammo: "+player.ammo+"/"+player.maxAmmo,10,60);
   ctx.fillText("I = Controls",10,40);
 }
+
+    if(debugMode){
+
+    ctx.fillStyle="rgba(0,0,0,.75)";
+    ctx.fillRect(560,10,230,150);
+
+    ctx.strokeStyle="lime";
+    ctx.strokeRect(560,10,230,150);
+
+    ctx.fillStyle="lime";
+    ctx.font="14px monospace";
+
+    ctx.fillText("DEBUG MODE",575,30);
+
+    ctx.fillStyle="white";
+
+    ctx.fillText("Player X: "+Math.floor(player.x),575,55);
+    ctx.fillText("Player Y: "+Math.floor(player.y),575,75);
+
+    ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,95);
+    ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,115);
+
+    ctx.fillText("Enemies: "+enemies.length,575,135);
+
+}
+
+  if(debugMode){
+
+    ctx.fillStyle="red";
+    ctx.font="bold 18px monospace";
+    ctx.fillText(
+        "⚠ DEBUG MODE",
+        10,
+        canvas.height-20
+    );
+
+}
+  
    function drawPauseScreen(){
   draw(); // draw current frame first
 
