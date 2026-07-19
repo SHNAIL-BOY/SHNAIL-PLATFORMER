@@ -749,6 +749,14 @@ function update(){
     player.dx=-player.speed; player.facing=-1;
   } else player.dx*=0.8;
 
+  if(debugMode){
+
+    if(keys["Digit1"]){
+        player.x += 500;
+    }
+
+}
+
   player.dy+=gravity;
   player.x+=player.dx;
   player.y+=player.dy;
