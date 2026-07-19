@@ -1164,6 +1164,14 @@ else{ ctx.fillStyle="red";
   ctx.fillText("I = Controls",10,40);
 }
 
+  if(debugMode){
+
+    ctx.fillStyle = "red";
+    ctx.font = "bold 18px monospace";
+    ctx.fillText("⚠ DEBUG MODE", 10, 100);
+
+}
+
     if(debugMode){
 
     ctx.fillStyle="rgba(0,0,0,.75)";
@@ -1186,18 +1194,6 @@ else{ ctx.fillStyle="red";
     ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,115);
 
     ctx.fillText("Enemies: "+enemies.length,575,135);
-
-}
-
-  if(debugMode){
-
-    ctx.fillStyle="red";
-    ctx.font="bold 18px monospace";
-    ctx.fillText(
-        "⚠ DEBUG MODE",
-        10,
-        canvas.height-20
-    );
 
 }
   
