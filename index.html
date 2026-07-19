@@ -1162,17 +1162,12 @@ else{ ctx.fillStyle="red";
   ctx.fillText("#shnails4life",10,20);
   ctx.fillText("Ammo: "+player.ammo+"/"+player.maxAmmo,10,60);
   ctx.fillText("I = Controls",10,40);
-}
 
   if(debugMode){
 
-    ctx.fillStyle = "red";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText("⚠ DEBUG MODE", 10, 100);
-
-}
-
-    if(debugMode){
+    ctx.fillStyle="red";
+    ctx.font="bold 18px monospace";
+    ctx.fillText("⚠ DEBUG MODE",10,100);
 
     ctx.fillStyle="rgba(0,0,0,.75)";
     ctx.fillRect(560,10,230,150);
@@ -1182,18 +1177,15 @@ else{ ctx.fillStyle="red";
 
     ctx.fillStyle="lime";
     ctx.font="14px monospace";
-
     ctx.fillText("DEBUG MODE",575,30);
 
     ctx.fillStyle="white";
-
     ctx.fillText("Player X: "+Math.floor(player.x),575,55);
     ctx.fillText("Player Y: "+Math.floor(player.y),575,75);
-
     ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,95);
     ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,115);
-
     ctx.fillText("Enemies: "+enemies.length,575,135);
+}
 
 }
   
