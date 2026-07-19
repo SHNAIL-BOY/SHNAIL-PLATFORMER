@@ -504,6 +504,8 @@ function addScore(amount){
 let debugMode = false;
 let noclip = false;
 
+let debugPopup = 0;
+
 let coyoteTime = 0;
 let jumpBuffer = 0;
 
@@ -565,14 +567,18 @@ if(e.code==="KeyF" && (player.ammo>0 || debugMode)){
   
 });
 
-  document.addEventListener("keydown",e=>{
+document.addEventListener("keydown",e=>{
 
     if(
         e.ctrlKey &&
-        e.shiftKey &&
+        e.altKey &&
         e.code==="KeyS"
     ){
+        e.preventDefault(); // Prevent any browser shortcuts
+
         debugMode = !debugMode;
+        debugPopup = 180;
+
         console.log(
             "Debug Mode:",
             debugMode ? "ON" : "OFF"
@@ -1185,6 +1191,31 @@ else{ ctx.fillStyle="red";
     ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,95);
     ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,115);
     ctx.fillText("Enemies: "+enemies.length,575,135);
+}
+
+  if(debugPopup > 0){
+
+    debugPopup--;
+
+    ctx.fillStyle = debugMode
+        ? "rgba(0,120,0,.9)"
+        : "rgba(120,0,0,.9)";
+
+    ctx.fillRect(250,20,300,40);
+
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(250,20,300,40);
+
+    ctx.fillStyle = "white";
+    ctx.font = "bold 18px monospace";
+
+    ctx.fillText(
+        debugMode
+            ? "🛠 DEBUG MODE ENABLED"
+            : "🛠 DEBUG MODE DISABLED",
+        265,
+        46
+    );
 }
 
 }
