@@ -502,6 +502,10 @@ function addScore(amount){
 }
 
 let debugMode = false;
+
+let debugInvincible = true;
+let debugInfiniteAmmo = true;
+let debugHitboxes = true;
 let noclip = false;
 
 let debugPopup = 0;
@@ -552,7 +556,7 @@ document.addEventListener("keydown",e=>{
   if(e.code==="KeyI")
     box.style.display = box.style.display==="none"?"block":"none";
 
-if(e.code==="KeyF" && (player.ammo>0 || debugMode)){
+if(e.code==="KeyF" && (player.ammo>0 || debugInfiniteAmmo){){
     bullets.push({
         x:player.x+15,
         y:player.y+15,
@@ -568,9 +572,22 @@ if(e.code==="KeyF" && (player.ammo>0 || debugMode)){
   if(e.code==="Space" || e.code==="KeyW" || e.code==="ArrowUp"){
     jumpBuffer = 6;
   }
+
+if(debugMode){
+
+    if(e.code==="Digit1")
+        debugInvincible = !debugInvincible;
+
+    if(e.code==="Digit2")
+        debugInfiniteAmmo = !debugInfiniteAmmo;
+
+    if(e.code==="Digit3")
+        debugHitboxes = !debugHitboxes;
+
+}
   
 });
-
+  
 document.addEventListener("keydown",e=>{
 
     if(
@@ -767,7 +784,7 @@ function update(){
 
   if(debugMode){
 
-    if(keys["Digit1"]){
+    if(keys["KeyT"]){
         player.x += 500;
     }
 
@@ -1152,7 +1169,7 @@ else{ ctx.fillStyle="red";
   ctx.fillStyle="lightgreen";
   ctx.fillRect(player.x,player.y,player.w,player.h);
 
-  if(debugMode){
+  if(debugMode && debugHitboxes){
 
     ctx.strokeStyle="red";
 
@@ -1201,13 +1218,19 @@ else{ ctx.fillStyle="red";
     ctx.font="14px monospace";
     ctx.fillText("DEBUG MODE",575,30);
 
+    
+
     ctx.fillStyle="white";
+    ctx.fillText("Invincible: " +(debugInvincible ? "ON" : "OFF"),575,55);
+    ctx.fillText("Infinite Ammo: " +(debugInfiniteAmmo ? "ON" : "OFF"),575,75);
+    ctx.fillText("Hitboxes: " +(debugHitboxes ? "ON" : "OFF"),575,95);
     ctx.fillText("Player X: "+Math.floor(player.x),575,55);
     ctx.fillText("Player Y: "+Math.floor(player.y),575,75);
     ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,95);
     ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,115);
     ctx.fillText("Enemies: "+enemies.length,575,135);
     ctx.fillText("FPS: "+fps,575,155);
+    
 }
 
   if(debugPopup > 0){
