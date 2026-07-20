@@ -506,6 +506,10 @@ let noclip = false;
 
 let debugPopup = 0;
 
+let fps = 0;
+let frameCount = 0;
+let lastFPSUpdate = performance.now();
+
 let coyoteTime = 0;
 let jumpBuffer = 0;
 
@@ -1024,6 +1028,18 @@ function respawn(){
 
 function draw(){
 
+frameCount++;
+
+const now = performance.now();
+
+if(now - lastFPSUpdate >= 1000){
+
+    fps = frameCount;
+    frameCount = 0;
+    lastFPSUpdate = now;
+
+}
+
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   if(flash > 0){
@@ -1191,6 +1207,7 @@ else{ ctx.fillStyle="red";
     ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,95);
     ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,115);
     ctx.fillText("Enemies: "+enemies.length,575,135);
+    ctx.fillText("FPS: "+fps,575,155);
 }
 
   if(debugPopup > 0){
