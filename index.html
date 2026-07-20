@@ -952,12 +952,12 @@ if(platformUnder && e.dx!==0 && e.type !== "runner"){
     b.x += b.dx;
     b.y += b.dy;
 
-    if(rect(player,{x:b.x,y:b.y,w:6,h:6} && !debugInvincible)){
-      addShake(10);
-      flash = 10;
-      spawnParticles(player.x,player.y,"purple");
-      respawn();
-    }
+if(rect(player, {x:b.x, y:b.y, w:6, h:6}) && !debugInvincible){
+    addShake(10);
+    flash = 10;
+    spawnParticles(player.x, player.y, "purple");
+    respawn();
+}
   });
 
   enemyBullets = enemyBullets.filter(b =>
