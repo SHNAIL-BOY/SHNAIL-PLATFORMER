@@ -1202,17 +1202,17 @@ else{ ctx.fillStyle="red";
   ctx.fillText("Ammo: "+player.ammo+"/"+player.maxAmmo,10,60);
   ctx.fillText("I = Controls",10,40);
 
-  if(debugMode){
+ if(debugMode){
 
     ctx.fillStyle="red";
     ctx.font="bold 18px monospace";
     ctx.fillText("⚠ DEBUG MODE",10,100);
 
     ctx.fillStyle="rgba(0,0,0,.75)";
-    ctx.fillRect(560,10,230,190);
+    ctx.fillRect(560,10,230,240);
 
     ctx.strokeStyle="lime";
-    ctx.strokeRect(560,10,230,190);
+    ctx.strokeRect(560,10,230,240);
 
     ctx.fillStyle="lime";
     ctx.font="14px monospace";
@@ -1224,12 +1224,13 @@ else{ ctx.fillStyle="red";
     ctx.fillText("Invincible: " +(debugInvincible ? "ON" : "OFF"),575,55);
     ctx.fillText("Infinite Ammo: " +(debugInfiniteAmmo ? "ON" : "OFF"),575,75);
     ctx.fillText("Hitboxes: " +(debugHitboxes ? "ON" : "OFF"),575,95);
-    ctx.fillText("Player X: "+Math.floor(player.x),575,55);
-    ctx.fillText("Player Y: "+Math.floor(player.y),575,75);
-    ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,95);
-    ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,115);
-    ctx.fillText("Enemies: "+enemies.length,575,135);
-    ctx.fillText("FPS: "+fps,575,155);
+   ctx.fillText("Noclip: " +(noclip ? "ON" : "OFF"),575,115);
+    ctx.fillText("Player X: "+Math.floor(player.x),575,135);
+    ctx.fillText("Player Y: "+Math.floor(player.y),575,155);
+    ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,175);
+    ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,195);
+    ctx.fillText("Enemies: "+enemies.length,575,215);
+    ctx.fillText("FPS: "+fps,575,235);
     
 }
 
