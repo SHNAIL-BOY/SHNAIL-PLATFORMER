@@ -19,9 +19,10 @@ content="Shnail Platformer, a free endless browser platformer with enemies, chat
       border:2px solid white;
       display:none;
       font-family:monospace;
+      z-index: 1000;
     }
 
-    #mainMenu{
+    #mainMenu {
       position:absolute;
       top:50%; left:50%;
       transform:translate(-50%,-50%);
@@ -30,14 +31,15 @@ content="Shnail Platformer, a free endless browser platformer with enemies, chat
       padding:30px;
       font-family:monospace;
       text-align:center;
+      z-index: 900;
     }
 
-    #mainMenu h1{
+    #mainMenu h1 {
       color:green;
       margin-bottom:20px;
     }
 
-    #startButton, #easyModeButton{
+    #startButton, #easyModeButton {
       background:green;
       color:white;
       border:none;
@@ -365,7 +367,7 @@ background:#4CAF50;
 
 <div id="mainMenu">
 <h1>SHNAIL PLATFORMER</h1>
-<button id="startButton" onclick="startGame()">START</button><br>
+<button id="startButton" onclick="startGame()">START GAME</button><br>
 <button id="easyModeButton" onclick="toggleEasyMode()">EASY MODE: OFF</button>
 </div>
 
@@ -399,26 +401,18 @@ Toggle Menu: I<br>
 #shnails4life
 </div>
 
-  <script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"VideoGame",
-  "name":"Shnail Platformer",
-  "url":"https://shnail-platformer.com",
-  "genre":"Platformer",
-  "applicationCategory":"Game",
-  "operatingSystem":"Any",
-  "description":"A free browser platformer with endless procedural platforms and various enemies & powerups"
-}
-</script>
-
 <script>
 let paused = false;
 let easyMode = false;
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const box = document.getElementById("controlsBox");
 const menu = document.getElementById("mainMenu");
+
+// Delta Time Tracker variables
+let lastTime = performance.now();
+let dt = 1;
 
 function toggleEasyMode(){
   easyMode = !easyMode;
@@ -436,97 +430,41 @@ function startGame(){
   audioCtx.resume();
   menu.style.display="none";
   resetWorld();
-  update();
+  lastTime = performance.now();
+  update(lastTime);
 }
 
 const gravity = 0.5;
 
-  //SFX
-
+// SFX
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function beep(freq, duration, type="square", volume=0.08){
-
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-
     osc.type = type;
     osc.frequency.value = freq;
-
     gain.gain.value = volume;
-
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-
     osc.start();
-
-    gain.gain.exponentialRampToValueAtTime(
-        0.0001,
-        audioCtx.currentTime + duration
-    );
-
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
     osc.stop(audioCtx.currentTime + duration);
-
 }
 
-  function sfxJump(){
-
-    beep(520,0.08,"square");
-    setTimeout(()=>beep(720,0.05,"square"),25);
-
-}
-
-function sfxShoot(){
-
-    beep(220,0.04,"sawtooth");
-    setTimeout(()=>beep(170,0.04,"sawtooth"),20);
-
-}
-
-function sfxCoin(){
-
-    beep(900,0.05,"triangle");
-    setTimeout(()=>beep(1200,0.08,"triangle"),40);
-
-}
-
+function sfxJump(){ beep(520,0.08,"square"); setTimeout(()=>beep(720,0.05,"square"),25); }
+function sfxShoot(){ beep(220,0.04,"sawtooth"); setTimeout(()=>beep(170,0.04,"sawtooth"),20); }
+function sfxCoin(){ beep(900,0.05,"triangle"); setTimeout(()=>beep(1200,0.08,"triangle"),40); }
 function sfxPowerup(){
     beep(400,0.05,"sine");
     setTimeout(()=>beep(600,0.05,"sine"),30);
     setTimeout(()=>beep(800,0.05,"sine"),60);
     setTimeout(()=>beep(1000,0.08,"sine"),90);
 }
-
-function sfxEnemy(){
-
-    beep(180,0.10,"square");
-    setTimeout(()=>beep(90,0.12,"square"),50);
-
-}
-
-function sfxDash(){
-
-    beep(300,0.03,"sawtooth");
-    setTimeout(()=>beep(500,0.03,"sawtooth"),20);
-    setTimeout(()=>beep(800,0.03,"sawtooth"),40);
-
-}
-
-function sfxDeath(){
-
-    beep(400,0.10,"square");
-    setTimeout(()=>beep(250,0.12,"square"),60);
-    setTimeout(()=>beep(120,0.18,"square"),120);
-
-}
-
-function sfxTurret(){
-
-    beep(120,0.04,"triangle");
-    setTimeout(()=>beep(120,0.04,"triangle"),50);
-    setTimeout(()=>beep(120,0.04,"triangle"),100);
-
-}
+function sfxEnemy(){ beep(180,0.10,"square"); setTimeout(()=>beep(90,0.12,"square"),50); }
+function sfxDash(){ beep(300,0.03,"sawtooth"); setTimeout(()=>beep(500,0.03,"sawtooth"),20); setTimeout(()=>beep(800,0.03,"sawtooth"),40); }
+function sfxDeath(){ beep(400,0.10,"square"); setTimeout(()=>beep(250,0.12,"square"),60); setTimeout(()=>beep(120,0.18,"square"),120); }
+function sfxTurret(){ beep(120,0.04,"triangle"); setTimeout(()=>beep(120,0.04,"triangle"),50); setTimeout(()=>beep(120,0.04,"triangle"),100); }
 
 let cameraX = 0;
 let shake = 0;
@@ -549,7 +487,6 @@ function addScore(amount){
 }
 
 let debugMode = false;
-
 let debugInvincible = false;
 let debugInfiniteAmmo = false;
 let debugHitboxes = false;
@@ -606,6 +543,7 @@ function resetWorld(){
 
   coyoteTime=0; jumpBuffer=0;
 }
+
 resetWorld();
 
 let keys={};
@@ -625,56 +563,34 @@ function fireBullets(){
 document.addEventListener("keydown",e=>{
   keys[e.code]=true;
   if(e.code === "Escape"){
-  paused = !paused;
-}
+    paused = !paused;
+  }
   if(e.code==="KeyR") resetWorld();
   if(e.code==="KeyI")
     box.style.display = box.style.display==="none"?"block":"none";
 
-if(e.code==="KeyF" && (player.ammo>0 || debugInfiniteAmmo)){
-    fireBullets();
-}
+  if(e.code==="KeyF" && (player.ammo>0 || debugInfiniteAmmo)){
+      fireBullets();
+  }
 
   if(e.code==="Space" || e.code==="KeyW" || e.code==="ArrowUp"){
     jumpBuffer = 6;
   }
 
-if(debugMode){
-
-    if(e.code==="Digit1")
-        debugInvincible = !debugInvincible;
-
-    if(e.code==="Digit2")
-        debugInfiniteAmmo = !debugInfiniteAmmo;
-
-    if(e.code==="Digit3")
-        debugHitboxes = !debugHitboxes;
-
-    if(e.code==="Digit4")
-        noclip = !noclip;
-
-}
-  
+  if(debugMode){
+      if(e.code==="Digit1") debugInvincible = !debugInvincible;
+      if(e.code==="Digit2") debugInfiniteAmmo = !debugInfiniteAmmo;
+      if(e.code==="Digit3") debugHitboxes = !debugHitboxes;
+      if(e.code==="Digit4") noclip = !noclip;
+  }
 });
   
 document.addEventListener("keydown",e=>{
-
-    if(
-        e.ctrlKey &&
-        e.altKey &&
-        e.code==="KeyS"
-    ){
-        e.preventDefault(); // Prevent any browser shortcuts
-
+    if(e.ctrlKey && e.altKey && e.code==="KeyS"){
+        e.preventDefault();
         debugMode = !debugMode;
         debugPopup = 180;
-
-        console.log(
-            "Debug Mode:",
-            debugMode ? "ON" : "OFF"
-        );
     }
-
 });
 
 document.addEventListener("keyup",e=>keys[e.code]=false);
@@ -694,13 +610,10 @@ function handleGamepad(){
     player.facing = move > 0 ? 1 : -1;
   }
 
-  function pressed(btn){
-    return gp.buttons[btn]?.pressed && !prevButtons[btn];
-  }
+  function pressed(btn){ return gp.buttons[btn]?.pressed && !prevButtons[btn]; }
   function held(btn){ return gp.buttons[btn]?.pressed; }
 
   if(pressed(3)) jumpBuffer = 6;
-
   if(pressed(2) && player.dash <= 0){
     player.dx = player.facing * 30;
     player.dash = 60;
@@ -715,8 +628,7 @@ function handleGamepad(){
   }
 
   if(pressed(9)) resetWorld();
-
-  if(player.shootCooldown > 0) player.shootCooldown--;
+  if(player.shootCooldown > 0) player.shootCooldown -= dt;
   prevButtons = gp.buttons.map(b => b.pressed);
 }
 
@@ -731,33 +643,25 @@ function updateHUD(){
   if(player.shieldHits > 0){
     shieldHud.style.display = "block";
     document.getElementById("shieldHitsText").innerText = player.shieldHits;
-  } else {
-    shieldHud.style.display = "none";
-  }
+  } else { shieldHud.style.display = "none"; }
 
   const freezeHud = document.getElementById("freezeHud");
   if(timeFreezeTimer > 0){
     freezeHud.style.display = "block";
     document.getElementById("freezeTimeText").innerText = Math.ceil(timeFreezeTimer / 60);
-  } else {
-    freezeHud.style.display = "none";
-  }
+  } else { freezeHud.style.display = "none"; }
 
   const droneHud = document.getElementById("droneHud");
   if(droneTimer > 0){
     droneHud.style.display = "block";
     document.getElementById("droneTimeText").innerText = Math.ceil(droneTimer / 60);
-  } else {
-    droneHud.style.display = "none";
-  }
+  } else { droneHud.style.display = "none"; }
 
   const ghostHud = document.getElementById("ghostHud");
   if(ghostTimer > 0){
     ghostHud.style.display = "block";
     document.getElementById("ghostTimeText").innerText = Math.ceil(ghostTimer / 60);
-  } else {
-    ghostHud.style.display = "none";
-  }
+  } else { ghostHud.style.display = "none"; }
 }
 
 /* PARTICLES */
@@ -775,10 +679,10 @@ function spawnParticles(x,y,color,count=8){
 
 function updateParticles(){
   particles.forEach(p=>{
-    p.x += p.dx;
-    p.y += p.dy;
-    p.dy += 0.2;
-    p.life--;
+    p.x += p.dx * dt;
+    p.y += p.dy * dt;
+    p.dy += 0.2 * dt;
+    p.life -= dt;
   });
   particles = particles.filter(p=>p.life>0);
 }
@@ -788,7 +692,7 @@ function addShake(amount){ shake = Math.max(shake, amount); }
 function applyShake(){
   if(shake > 0){
     shakeX = (Math.random()-0.5) * shake;
-    shake *= 0.85;
+    shake *= Math.pow(0.85, dt);
   } else { shake = 0; shakeX = 0; }
 }
 
@@ -804,9 +708,8 @@ function triggerNuke(){
   enemyBullets = [];
 }
 
-/* WORLD */
+/* WORLD GENERATION (Endless Mode) */
 function generateChunk(){
-
   let startX = worldX + 800;
 
   for(let i=0;i<6;i++){
@@ -818,48 +721,18 @@ function generateChunk(){
     if(Math.random()<0.95){
       let r = Math.random();
 
-      if(r < 0.2 && !easyMode){
-        enemies.push({
-          x,y:y-20,w:20,h:20,
-          dx:0,dy:0,
-          type:"turret",
-          hp:3,
-          shootTimer:60
-        });
-      } else if(r < 0.45){
-        enemies.push({
-          x,y:y-18,w:24,h:18,
-          dx:(Math.random()<0.5?-1:1)*0.6,
-          dy:0,type:"shnail",hp:2
-        });
-    } else if(r < 0.7){
-  enemies.push({
-    x,y:y-20,w:20,h:20,
-    dx:(Math.random()<0.5?-1:1)*1.2,
-    dy:0,
-    type:"normal"
-  });
-} else if(r < 0.85){
-  enemies.push({
-    x,
-    y:y-20,
-    w:24,
-    h:18,
-    dx:0,
-    dy:0,
-    type:"runner",
-    hp:1,
-    dashCooldown:80,
-    dashing:false
-  });
-} else if(!easyMode) {
-  enemies.push({
-    x,y:y-20,w:22,h:22,
-    dx:0,dy:0,
-    type:"jumper",
-    hp:2,
-    jumpTimer:60
-        });
+      if(r < 0.15 && !easyMode){
+        enemies.push({ x,y:y-20,w:20,h:20, dx:0,dy:0, type:"turret", hp:3, shootTimer:60 });
+      } else if(r < 0.35){
+        enemies.push({ x,y:y-18,w:24,h:18, dx:(Math.random()<0.5?-1:1)*0.6, dy:0, type:"shnail", hp:2 });
+      } else if(r < 0.50){
+        enemies.push({ x, y: y - 50, w: 24, h: 18, dx: 0, dy: 0, type: "flying_shnail", hp: 2, hoverBaseY: y - 50, hoverAngle: Math.random() * Math.PI * 2, speed: 1.2 });
+      } else if(r < 0.70){
+        enemies.push({ x,y:y-20,w:20,h:20, dx:(Math.random()<0.5?-1:1)*1.2, dy:0, type:"normal" });
+      } else if(r < 0.85){
+        enemies.push({ x, y:y-20, w:24, h:18, dx:0, dy:0, type:"runner", hp:1, dashCooldown:80, dashing:false });
+      } else if(!easyMode) {
+        enemies.push({ x,y:y-20,w:22,h:22, dx:0,dy:0, type:"jumper", hp:2, jumpTimer:60 });
       }
     }
 
@@ -868,7 +741,6 @@ function generateChunk(){
     if(Math.random()<0.15) ammoCrates.push({x:x+50,y:y-20,taken:false});
     if(Math.random()<0.10) mushrooms.push({x:x+70,y:y-16,taken:false});
 
-    // Powerup Spawning
     if(Math.random()<0.20){
       let pr = Math.random();
       let pType = "shield";
@@ -891,13 +763,18 @@ function rect(a,b){
          a.y<b.y+b.h && a.y+a.h>b.y;
 }
 
-function update(){
-
+function update(timestamp){
   if(paused){
-  drawPauseScreen();
-  return requestAnimationFrame(update);
-}
+    drawPauseScreen();
+    lastTime = timestamp;
+    return requestAnimationFrame(update);
+  }
   
+  let elapsed = timestamp - lastTime;
+  lastTime = timestamp;
+  dt = elapsed / 16.6667;
+  if (dt > 3) dt = 3;
+
   handleGamepad();
 
   if(player.x>worldX-400) generateChunk();
@@ -906,12 +783,11 @@ function update(){
     player.dx=player.speed; player.facing=1;
   } else if(keys["ArrowLeft"]||keys["KeyA"]){
     player.dx=-player.speed; player.facing=-1;
-  } else player.dx*=0.8;
+  } else player.dx *= Math.pow(0.8, dt);
 
-  // Timers
   if(player.speedBoostTimer > 0){
-    player.speedBoostTimer--;
-    if(player.speedBoostTimer % 3 === 0){
+    player.speedBoostTimer -= dt;
+    if(Math.floor(player.speedBoostTimer) % 3 === 0){
       spawnParticles(player.x + player.w/2, player.y + player.h, "yellow", 1);
     }
     if(player.speedBoostTimer <= 0){
@@ -919,25 +795,22 @@ function update(){
     }
   }
 
-  if(timeFreezeTimer > 0){
-    timeFreezeTimer--;
-  }
+  if(timeFreezeTimer > 0) timeFreezeTimer -= dt;
 
   if(ghostTimer > 0){
-    ghostTimer--;
-    if(ghostTimer % 5 === 0){
+    ghostTimer -= dt;
+    if(Math.floor(ghostTimer) % 5 === 0){
       spawnParticles(player.x + Math.random()*player.w, player.y + Math.random()*player.h, "white", 1);
     }
   }
 
-  // Mini Drone Logic
   if(droneTimer > 0){
-    droneTimer--;
-    droneAngle += 0.05;
+    droneTimer -= dt;
+    droneAngle += 0.05 * dt;
     let droneX = player.x + player.w/2 + Math.cos(droneAngle) * 35;
     let droneY = player.y - 15 + Math.sin(droneAngle) * 10;
 
-    droneShootTimer--;
+    droneShootTimer -= dt;
     if(droneShootTimer <= 0 && enemies.length > 0){
       let nearest = null;
       let minDst = 350;
@@ -957,17 +830,13 @@ function update(){
     }
   }
 
-  if(debugMode){
+  if(debugMode && keys["KeyT"]){
+    player.x += 500;
+  }
 
-    if(keys["KeyT"]){
-        player.x += 500;
-    }
-
-}
-
-  player.dy+=gravity;
-  player.x+=player.dx;
-  player.y+=player.dy;
+  player.dy += gravity * dt;
+  player.x += player.dx * dt;
+  player.y += player.dy * dt;
 
   if(player.y>canvas.height+200) respawn();
 
@@ -993,7 +862,7 @@ function update(){
   });
 
   if(player.grounded) coyoteTime = 6;
-  else coyoteTime--;
+  else coyoteTime -= dt;
 
   if(jumpBuffer > 0){
     if(coyoteTime > 0 || player.jumps < 2){
@@ -1003,7 +872,7 @@ function update(){
       jumpBuffer = 0;
       coyoteTime = 0;
     }
-    jumpBuffer--;
+    jumpBuffer -= dt;
   }
 
   if((keys["ShiftLeft"]||keys["ShiftRight"]) && player.dash<=0){
@@ -1013,44 +882,46 @@ function update(){
   }
 
   if(!debugMode){
-
-    if(player.dash>0)
-        player.dash--;
-
-}else{
-
-    player.dash = 0;
-
-}
+    if(player.dash>0) player.dash -= dt;
+  } else { player.dash = 0; }
 
   if(debugMode){
+    if(keys["KeyQ"]) player.y -= 5 * dt;
+    if(keys["KeyE"]) player.y += 5 * dt;
+  }
 
-    if(keys["KeyQ"])
-        player.y -= 5;
-
-    if(keys["KeyE"])
-        player.y += 5;
-
-}
-
-  let timeScale = timeFreezeTimer > 0 ? 0.3 : 1.0;
+  let timeScale = (timeFreezeTimer > 0 ? 0.3 : 1.0) * dt;
 
   enemies.forEach(e=>{
-    e.dy+=gravity * timeScale;
-    e.x+=e.dx * timeScale;
-    e.y+=e.dy * timeScale;
-if(e.type === "jumper"){
-  e.jumpTimer -= timeScale;
+    if(e.type === "flying_shnail"){
+      e.hoverAngle += 0.05 * timeScale;
+      
+      let dirX = player.x - e.x;
+      let dirY = player.y - e.hoverBaseY;
+      let dist = Math.hypot(dirX, dirY);
 
-  if(e.jumpTimer <= 0){
-    let dx = player.x - e.x;
+      if(dist > 0){
+        e.dx = (dirX / dist) * e.speed;
+        e.hoverBaseY += (dirY / dist) * e.speed * timeScale;
+      }
+      
+      e.x += e.dx * timeScale;
+      e.y = e.hoverBaseY + Math.sin(e.hoverAngle) * 12;
+    } else {
+      e.dy += gravity * timeScale;
+      e.x += e.dx * timeScale;
+      e.y += e.dy * timeScale;
+    }
 
-    e.dx = dx > 0 ? 2 : -2;   // jump toward player
-    e.dy = -10;               // jump up
-
-    e.jumpTimer = 90;         // reset timer
-  }
-}
+    if(e.type === "jumper"){
+      e.jumpTimer -= timeScale;
+      if(e.jumpTimer <= 0){
+        let dx = player.x - e.x;
+        e.dx = dx > 0 ? 2 : -2;
+        e.dy = -10;
+        e.jumpTimer = 90;
+      }
+    }
     
     if(e.type === "turret"){
       e.shootTimer -= timeScale;
@@ -1060,66 +931,52 @@ if(e.type === "jumper"){
         let len = Math.hypot(dx,dy);
         dx/=len; dy/=len;
 
-        enemyBullets.push({
-          x:e.x+e.w/2,
-          y:e.y+e.h/2,
-          dx:dx*3, dy:dy*3
-        });
-
+        enemyBullets.push({ x:e.x+e.w/2, y:e.y+e.h/2, dx:dx*3, dy:dy*3 });
         sfxTurret();
-
         e.shootTimer = 90;
       }
     }
     
-if(e.type === "runner"){
-
-    e.dashCooldown -= timeScale;
-
-    if(!e.dashing && e.dashCooldown <= 0){
-
-        if(
-            Math.abs(player.x - e.x) < 220 &&
-            Math.abs(player.y - e.y) < 40
-        ){
-            e.dashing = true;
-            e.dx = player.x > e.x ? 8 : -8;
+    if(e.type === "runner"){
+      e.dashCooldown -= timeScale;
+      if(!e.dashing && e.dashCooldown <= 0){
+        if(Math.abs(player.x - e.x) < 220 && Math.abs(player.y - e.y) < 40){
+          e.dashing = true;
+          e.dx = player.x > e.x ? 8 : -8;
         }
-    }
-
-    if(e.dashing){
-        e.dx *= 0.99;
-
+      }
+      if(e.dashing){
+        e.dx *= Math.pow(0.99, dt);
         if(Math.abs(e.dx) < 1){
-            e.dx = 0;
-            e.dashing = false;
-            e.dashCooldown = 120;
+          e.dx = 0;
+          e.dashing = false;
+          e.dashCooldown = 120;
         }
+      }
     }
-}
 
     let platformUnder=null;
     platforms.forEach(p=>{
-      if(rect(e,p) && e.dy>0){
+      if(e.type !== "flying_shnail" && rect(e,p) && e.dy>0){
         e.y=p.y-e.h;
         e.dy=0;
         platformUnder=p;
       }
     });
 
-if(platformUnder && e.dx!==0 && e.type !== "runner"){
-    let frontX = e.dx>0 ? e.x+e.w+2 : e.x-2;
-    if(frontX < platformUnder.x || frontX > platformUnder.x+platformUnder.w){
-        e.dx *= -1;
+    if(e.type !== "flying_shnail" && platformUnder && e.dx!==0 && e.type !== "runner"){
+        let frontX = e.dx>0 ? e.x+e.w+2 : e.x-2;
+        if(frontX < platformUnder.x || frontX > platformUnder.x+platformUnder.w){
+            e.dx *= -1;
+        }
     }
-}
 
     if(rect(player,e) && !debugInvincible && ghostTimer <= 0){
       if(player.shieldHits > 0){
         player.shieldHits--;
         spawnParticles(player.x+player.w/2, player.y+player.h/2, "cyan", 10);
         addShake(5);
-        e.dead = true; // destroy the hit enemy
+        e.dead = true;
       } else {
         addShake(10);
         flash = 10;
@@ -1133,18 +990,18 @@ if(platformUnder && e.dx!==0 && e.type !== "runner"){
     b.x += b.dx * timeScale;
     b.y += b.dy * timeScale;
 
-if(rect(player, {x:b.x, y:b.y, w:6, h:6}) && !debugInvincible && ghostTimer <= 0){
-    if(player.shieldHits > 0){
-      player.shieldHits--;
-      spawnParticles(player.x+player.w/2, player.y+player.h/2, "cyan", 6);
-      b.dead = true;
-    } else {
-      addShake(10);
-      flash = 10;
-      spawnParticles(player.x, player.y, "purple");
-      respawn();
+    if(rect(player, {x:b.x, y:b.y, w:6, h:6}) && !debugInvincible && ghostTimer <= 0){
+        if(player.shieldHits > 0){
+          player.shieldHits--;
+          spawnParticles(player.x+player.w/2, player.y+player.h/2, "cyan", 6);
+          b.dead = true;
+        } else {
+          addShake(10);
+          flash = 10;
+          spawnParticles(player.x, player.y, "purple");
+          respawn();
+        }
     }
-}
   });
 
   enemyBullets = enemyBullets.filter(b =>
@@ -1157,25 +1014,19 @@ if(rect(player, {x:b.x, y:b.y, w:6, h:6}) && !debugInvincible && ghostTimer <= 0
 
   bullets.forEach(b=>{
     if(b.dead) return;
-    b.x += b.dx;
-    if(b.dy) b.y += b.dy;
+    b.x += b.dx * dt;
+    if(b.dy) b.y += b.dy * dt;
 
-    
     for(let e of enemies){
       if(rect({x:b.x,y:b.y,w:5,h:5},e)){
         addShake(5);
         flash = 6;
-        spawnParticles(e.x,e.y,"lime");
+        spawnParticles(e.x,e.y,e.type==="flying_shnail"?"deepskyblue":"lime");
 
-if(
-    e.type==="shnail" ||
-    e.type==="turret" ||
-    e.type==="jumper" ||
-    e.type==="runner"
-){
+        if(e.type==="shnail" || e.type==="flying_shnail" || e.type==="turret" || e.type==="jumper" || e.type==="runner"){
           e.hp--;
           if(e.hp<=0){
-            spawnParticles(e.x,e.y,"green");
+            spawnParticles(e.x,e.y,e.type==="flying_shnail"?"dodgerblue":"green");
             e.dead=true;
             addScore(e.type==="turret"?30:20);
           }
@@ -1184,7 +1035,6 @@ if(
           sfxEnemy();
           addScore(10);
         }
-
         b.dead = true;
         break;
       }
@@ -1214,7 +1064,7 @@ if(
       m.taken=true;
       sfxPowerup();
       player.speed = 5.5;
-      player.speedBoostTimer = 300; // ~5 seconds boost
+      player.speedBoostTimer = 300;
       spawnParticles(player.x, player.y, "gold", 12);
       addScore(15);
     }
@@ -1234,10 +1084,10 @@ if(
         timeFreezeTimer = 600;
         spawnParticles(player.x+15, player.y+15, "purple", 12);
       } else if(p.type === "drone"){
-        droneTimer = 900; // 15 Seconds
+        droneTimer = 900;
         spawnParticles(player.x+15, player.y+15, "#00ff88", 12);
       } else if(p.type === "ghost"){
-        ghostTimer = 480; // 8 Seconds
+        ghostTimer = 480;
         spawnParticles(player.x+15, player.y+15, "white", 12);
       } else if(p.type === "nuke"){
         triggerNuke();
@@ -1254,7 +1104,7 @@ if(
   });
 
   let targetCamera = player.x - 200;
-  cameraX += (targetCamera - cameraX) * 0.1;
+  cameraX += (targetCamera - cameraX) * (1 - Math.pow(0.9, dt));
 
   applyShake();
   updateParticles();
@@ -1280,18 +1130,14 @@ function respawn(){
 }
 
 function draw(){
+  frameCount++;
+  const now = performance.now();
 
-frameCount++;
-
-const now = performance.now();
-
-if(now - lastFPSUpdate >= 1000){
-
-    fps = frameCount;
-    frameCount = 0;
-    lastFPSUpdate = now;
-
-}
+  if(now - lastFPSUpdate >= 1000){
+      fps = frameCount;
+      frameCount = 0;
+      lastFPSUpdate = now;
+  }
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -1303,7 +1149,7 @@ if(now - lastFPSUpdate >= 1000){
   if(flash > 0){
     ctx.fillStyle="rgba(255,255,255,0.2)";
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    flash--;
+    flash -= dt;
   }
 
   ctx.save();
@@ -1323,13 +1169,11 @@ if(now - lastFPSUpdate >= 1000){
 
   mushrooms.forEach(m=>{
     if(!m.taken){
-      // Cap
       ctx.fillStyle="gold";
       ctx.fillRect(m.x, m.y, 16, 10);
       ctx.fillStyle="white";
       ctx.fillRect(m.x+3, m.y+2, 3, 3);
       ctx.fillRect(m.x+10, m.y+2, 3, 3);
-      // Stem
       ctx.fillStyle="#ffedd8";
       ctx.fillRect(m.x+4, m.y+10, 8, 6);
     }
@@ -1388,48 +1232,56 @@ if(now - lastFPSUpdate >= 1000){
       ctx.fillRect(e.x+e.w+4,e.y+4,2,4);
       ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
       ctx.restore();
-    }
-      else if(e.type==="jumper"){
-  ctx.fillStyle="cyan";
-  ctx.fillRect(e.x,e.y,e.w,e.h);
-
-  // eye
-  ctx.fillStyle="black";
-  let eyeX = e.dx >= 0 ? e.x + 14 : e.x + 4;
-  ctx.fillRect(eyeX, e.y+5, 3, 3);
-}
-    else if(e.type==="turret"){
+    } else if(e.type==="flying_shnail"){
+      ctx.save();
+      if(e.dx<0){
+        ctx.scale(-1,1);
+        ctx.translate(-e.x*2-e.w,0);
+      }
+      ctx.fillStyle="deepskyblue";
+      ctx.fillRect(e.x,e.y-4,12,12);
+      ctx.fillStyle="dodgerblue";
+      ctx.fillRect(e.x+4,e.y,4,4);
+      ctx.fillStyle="navy";
+      ctx.fillRect(e.x+6,e.y+6,e.w,10);
+      ctx.fillRect(e.x+e.w+4,e.y+4,2,4);
+      ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
+      // Wings
+      ctx.fillStyle="lightblue";
+      let wingOffset = Math.sin(e.hoverAngle * 3) * 3;
+      ctx.fillRect(e.x+4, e.y-8 + wingOffset, 8, 4);
+      ctx.restore();
+    } else if(e.type==="jumper"){
+      ctx.fillStyle="cyan";
+      ctx.fillRect(e.x,e.y,e.w,e.h);
+      ctx.fillStyle="black";
+      let eyeX = e.dx >= 0 ? e.x + 14 : e.x + 4;
+      ctx.fillRect(eyeX, e.y+5, 3, 3);
+    } else if(e.type==="turret"){
       ctx.fillStyle="purple";
       ctx.fillRect(e.x,e.y,e.w,e.h);
       ctx.fillStyle="violet";
       ctx.fillRect(e.x+e.w, e.y+6, 8, 4);
+    } else if(e.type==="runner"){
+      ctx.save();
+      if(e.dx<0){
+          ctx.scale(-1,1);
+          ctx.translate(-e.x*2-e.w,0);
+      }
+      ctx.fillStyle="orchid";
+      ctx.fillRect(e.x,e.y-4,12,12);
+      ctx.fillStyle="purple";
+      ctx.fillRect(e.x+4,e.y,4,4);
+      ctx.fillStyle="darkorchid";
+      ctx.fillRect(e.x+6,e.y+6,e.w,10);
+      ctx.fillRect(e.x+e.w+4,e.y+4,2,4);
+      ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
+      ctx.restore();
+    } else { 
+      ctx.fillStyle="red"; 
+      ctx.fillRect(e.x,e.y,e.w,e.h); 
     }
-      else if(e.type==="runner"){
-    ctx.save();
-
-    if(e.dx<0){
-        ctx.scale(-1,1);
-        ctx.translate(-e.x*2-e.w,0);
-    }
-
-    ctx.fillStyle="orchid";      // shell
-    ctx.fillRect(e.x,e.y-4,12,12);
-
-    ctx.fillStyle="purple";      // head
-    ctx.fillRect(e.x+4,e.y,4,4);
-
-    ctx.fillStyle="darkorchid";  // body
-    ctx.fillRect(e.x+6,e.y+6,e.w,10);
-
-    // eyestalks
-    ctx.fillRect(e.x+e.w+4,e.y+4,2,4);
-    ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
-
-    ctx.restore();
-}
-        
-else{ ctx.fillStyle="red"; 
-      ctx.fillRect(e.x,e.y,e.w,e.h); } });
+  });
 
   enemyBullets.forEach(b=>{
     ctx.fillStyle="violet";
@@ -1458,7 +1310,6 @@ else{ ctx.fillStyle="red";
     ctx.fillRect(p.x,p.y,3,3);
   });
 
-  // Render player with transparency during Ghost Form
   ctx.save();
   if(ghostTimer > 0){
     ctx.globalAlpha = 0.45;
@@ -1467,7 +1318,6 @@ else{ ctx.fillStyle="red";
   ctx.fillRect(player.x,player.y,player.w,player.h);
   ctx.restore();
 
-  // Draw Shield Bubble around player
   if(player.shieldHits > 0){
     ctx.strokeStyle = "cyan";
     ctx.lineWidth = 2;
@@ -1476,11 +1326,9 @@ else{ ctx.fillStyle="red";
     ctx.stroke();
   }
 
-  // Render Mini Drone Orbit
   if(droneTimer > 0){
     let droneX = player.x + player.w/2 + Math.cos(droneAngle) * 35;
     let droneY = player.y - 15 + Math.sin(droneAngle) * 10;
-
     ctx.fillStyle = "#00ff88";
     ctx.fillRect(droneX - 4, droneY - 4, 8, 8);
     ctx.fillStyle = "white";
@@ -1488,30 +1336,11 @@ else{ ctx.fillStyle="red";
   }
 
   if(debugMode && debugHitboxes){
-
     ctx.strokeStyle="red";
-
-    enemies.forEach(e=>{
-
-        ctx.strokeRect(
-            e.x,
-            e.y,
-            e.w,
-            e.h
-        );
-
-    });
-
+    enemies.forEach(e=>{ ctx.strokeRect(e.x, e.y, e.w, e.h); });
     ctx.strokeStyle="cyan";
-
-    ctx.strokeRect(
-        player.x,
-        player.y,
-        player.w,
-        player.h
-    );
-
-}
+    ctx.strokeRect(player.x, player.y, player.w, player.h);
+  }
 
   ctx.restore();
 
@@ -1526,7 +1355,6 @@ else{ ctx.fillStyle="red";
   }
 
  if(debugMode){
-
     ctx.fillStyle="red";
     ctx.font="bold 18px monospace";
     ctx.fillText("⚠ DEBUG MODE",10,100);
@@ -1541,52 +1369,33 @@ else{ ctx.fillStyle="red";
     ctx.font="14px monospace";
     ctx.fillText("DEBUG MODE",575,30);
 
-    
-
     ctx.fillStyle="white";
     ctx.fillText("Invincible: " +(debugInvincible ? "ON" : "OFF"),575,55);
     ctx.fillText("Infinite Ammo: " +(debugInfiniteAmmo ? "ON" : "OFF"),575,75);
     ctx.fillText("Hitboxes: " +(debugHitboxes ? "ON" : "OFF"),575,95);
-   ctx.fillText("Noclip: " +(noclip ? "ON" : "OFF"),575,115);
+    ctx.fillText("Noclip: " +(noclip ? "ON" : "OFF"),575,115);
     ctx.fillText("Player X: "+Math.floor(player.x),575,135);
     ctx.fillText("Player Y: "+Math.floor(player.y),575,155);
     ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,175);
     ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,195);
     ctx.fillText("Enemies: "+enemies.length,575,215);
     ctx.fillText("FPS: "+fps,575,235);
-    
 }
 
   if(debugPopup > 0){
-
-    debugPopup--;
-
-    ctx.fillStyle = debugMode
-        ? "rgba(0,120,0,.9)"
-        : "rgba(120,0,0,.9)";
-
+    debugPopup -= dt;
+    ctx.fillStyle = debugMode ? "rgba(0,120,0,.9)" : "rgba(120,0,0,.9)";
     ctx.fillRect(250,20,300,40);
-
     ctx.strokeStyle = "white";
     ctx.strokeRect(250,20,300,40);
-
     ctx.fillStyle = "white";
     ctx.font = "bold 18px monospace";
-
-    ctx.fillText(
-        debugMode
-            ? "🛠 DEBUG MODE ENABLED"
-            : "🛠 DEBUG MODE DISABLED",
-        265,
-        46
-    );
-}
-
+    ctx.fillText(debugMode ? "🛠 DEBUG MODE ENABLED" : "🛠 DEBUG MODE DISABLED", 265, 46);
+  }
 }
   
-   function drawPauseScreen(){
-  draw(); // draw current frame first
-
+function drawPauseScreen(){
+  draw();
   ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
@@ -1610,38 +1419,25 @@ if ("serviceWorker" in navigator) {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-
 const SUPABASE_URL = "https://mpnybsxtwcbllrxouodw.supabase.co";
-
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wbnlic3h0d2NibGxyeG91b2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NTk4NjksImV4cCI6MjA5OTMzNTg2OX0.un6Yd4hbepBWIJ9rOmLKmxvzuDlqA910h38D8PH6SMY";
 
-
-const client = supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
-);
-
-
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const messages = document.getElementById("messages");
-  let canSend = true;
+let canSend = true;
 
-  const usernameInput = document.getElementById("username");
-
+const usernameInput = document.getElementById("username");
 usernameInput.value = localStorage.getItem("chatName") || "";
-
 usernameInput.addEventListener("input", () => {
   localStorage.setItem("chatName", usernameInput.value);
 });
 
 document.getElementById("chatInput").addEventListener("keydown", e => {
-if (e.key === "Enter") {
-sendMessage();
-  }
+  if (e.key === "Enter") sendMessage();
 });
 
 function addMessage(user, text) {
-
     const bubble = document.createElement("div");
     bubble.className = "chatBubble";
 
@@ -1649,7 +1445,6 @@ function addMessage(user, text) {
         bubble.classList.add("systemBubble");
         bubble.textContent = text;
     } else {
-
         const header = document.createElement("div");
         header.className = "chatHeader";
         header.textContent = user;
@@ -1662,11 +1457,7 @@ function addMessage(user, text) {
         time.className = "chatTime";
 
         const now = new Date();
-
-        time.textContent = now.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-        });
+        time.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
         bubble.appendChild(header);
         bubble.appendChild(message);
@@ -1678,165 +1469,87 @@ function addMessage(user, text) {
 }
 
 async function sendMessage(){
-
     let username = document.getElementById("username").value.trim();
     let text = document.getElementById("chatInput").value.trim();
 
     if(username === "" || text === "") return;
-
     if(!canSend) return;
 
-canSend = false;
+    canSend = false;
+    const sendButton = document.getElementById("sendButton");
+    sendButton.disabled = true;
+    sendButton.style.background = "#666";
+    sendButton.style.cursor = "not-allowed";
 
-const sendButton = document.getElementById("sendButton");
+    setTimeout(() => {
+        canSend = true;
+        sendButton.disabled = false;
+        sendButton.style.background = "#28a745";
+        sendButton.style.cursor = "pointer";
+    }, 1000);
 
-sendButton.disabled = true;
-sendButton.style.background = "#666";
-sendButton.style.cursor = "not-allowed";
-
-setTimeout(() => {
-    canSend = true;
-
-    sendButton.disabled = false;
-    sendButton.style.background = "#28a745";
-    sendButton.style.cursor = "pointer";
-}, 1000);
-
-    await client
-    .from("messages")
-    .insert({
-        username: username,
-        message: text
-    });
-
+    await client.from("messages").insert({ username: username, message: text });
     document.getElementById("chatInput").value = "";
 }
 
-
-
 async function loadMessages(){
-
-let {data}=await client
-.from("messages")
-.select("*")
-.order("created_at")
-.limit(50);
-
-data.forEach(m=>{
-addMessage(
-m.username,
-m.message
-);
-});
-
+  let {data}=await client.from("messages").select("*").order("created_at").limit(50);
+  data.forEach(m=>{ addMessage(m.username, m.message); });
 }
 
-
-
-client
-.channel("chat-room")
-.on(
-"postgres_changes",
-{
-event:"INSERT",
-schema:"public",
-table:"messages"
-},
-payload=>{
-
-addMessage(
-payload.new.username,
-payload.new.message
-);
-
-}
-)
-.subscribe();
-
-
+client.channel("chat-room").on("postgres_changes", { event:"INSERT", schema:"public", table:"messages" }, payload=>{
+  addMessage(payload.new.username, payload.new.message);
+}).subscribe();
 
 loadMessages();
 const presenceChannel = client.channel("online-users");
 
-presenceChannel
-  .on("presence", { event: "sync" }, () => {
-    const state = presenceChannel.presenceState();
+presenceChannel.on("presence", { event: "sync" }, () => {
+  const state = presenceChannel.presenceState();
+  document.getElementById("onlineCount").textContent = "🟢 " + Object.keys(state).length + " Online";
+}).subscribe(async (status) => {
+  if (status === "SUBSCRIBED") {
+    await presenceChannel.track({ username: document.getElementById("username").value || "Guest" });
+  }
+});
 
-    document.getElementById("onlineCount").textContent =
-      "🟢 " + Object.keys(state).length + " Online";
-  })
-  .subscribe(async (status) => {
-    if (status === "SUBSCRIBED") {
-      await presenceChannel.track({
-        username:
-          document.getElementById("username").value || "Guest"
-      });
-    }
-  });
-
- const minimizeBtn = document.getElementById("minimizeBtn");
-
+const minimizeBtn = document.getElementById("minimizeBtn");
 let minimized = false;
 
 minimizeBtn.onclick = () => {
-
     minimized = !minimized;
-
     const messages = document.getElementById("messages");
     const bottom = document.getElementById("chatBottom");
     const handle = document.getElementById("resizeHandle");
 
     if(minimized){
-
         messages.style.display = "none";
         bottom.style.display = "none";
         handle.style.display = "none";
-
         chatBox.style.height = "45px";
-
         minimizeBtn.textContent = "➕";
-
     } else {
-
         messages.style.display = "";
         bottom.style.display = "";
         handle.style.display = "";
-
         chatBox.style.height = "400px";
-
         minimizeBtn.textContent = "➖";
-
     }
-
 };
 
-       const chatBox = document.getElementById("chatBox");
+const chatBox = document.getElementById("chatBox");
 const resizeHandle = document.getElementById("resizeHandle");
-
 let resizing = false;
 
-resizeHandle.addEventListener("mousedown", e => {
-    resizing = true;
-    e.preventDefault();
-});
-
-document.addEventListener("mouseup", () => {
-    resizing = false;
-});
-
+resizeHandle.addEventListener("mousedown", e => { resizing = true; e.preventDefault(); });
+document.addEventListener("mouseup", () => { resizing = false; });
 document.addEventListener("mousemove", e => {
-
     if(!resizing) return;
-
     let bottom = window.innerHeight - 15;
     let newHeight = bottom - e.clientY;
-
     newHeight = Math.max(250, Math.min(700, newHeight));
-
     chatBox.style.height = newHeight + "px";
 });
-
 </script>
-  
 </body>
 </html>
