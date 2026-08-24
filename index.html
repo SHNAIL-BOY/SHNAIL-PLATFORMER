@@ -7,7 +7,7 @@
 content="Shnail Platformer, a free endless browser platformer with enemies, chat & regular updates. No download required.">
   <style>
     body { margin:0; overflow:hidden; background:#222; }
-    canvas { display:block; margin:auto; background:#87CEEB; image-rendering:pixelated; }
+    canvas { display:block; margin:auto; background:#87CEEB; image-rendering:pixelated; transition: background 1s ease; }
 
     #controlsBox{
       position:absolute;
@@ -39,7 +39,7 @@ content="Shnail Platformer, a free endless browser platformer with enemies, chat
       margin-bottom:20px;
     }
 
-    #startButton, #easyModeButton {
+    #startButton, #easyModeButton, #twoPlayerButton {
       background:green;
       color:white;
       border:none;
@@ -50,7 +50,7 @@ content="Shnail Platformer, a free endless browser platformer with enemies, chat
       margin: 5px;
     }
 
-    #easyModeButton.active {
+    #easyModeButton.active, #twoPlayerButton.active {
       background: #2ed84b;
       box-shadow: 0 0 10px #2ed84b;
     }
@@ -338,37 +338,27 @@ background:#4CAF50;
 </a>
 
 <div id="chatBox">
-
   <div id="chatHeader">
-
-<span>SHNAIL CHAT</span>
-
-<div>
-
-<span id="onlineCount">🟢 0 Online</span>
-
-<button id="minimizeBtn">➖</button>
-
-</div>
-
-</div>
-
-<div id="resizeHandle"></div>
-  
-<div id="messages"></div>
-
-<div id="chatBottom">
-<input id="username" placeholder="Name">
-<input id="chatInput" placeholder="Type a message...">
-<button id="sendButton" onclick="sendMessage()">➜</button>
-</div>
-
+    <span>SHNAIL CHAT</span>
+    <div>
+      <span id="onlineCount">🟢 0 Online</span>
+      <button id="minimizeBtn">➖</button>
+    </div>
+  </div>
+  <div id="resizeHandle"></div>
+  <div id="messages"></div>
+  <div id="chatBottom">
+    <input id="username" placeholder="Name">
+    <input id="chatInput" placeholder="Type a message...">
+    <button id="sendButton" onclick="sendMessage()">➜</button>
+  </div>
 </div>
 
 <div id="mainMenu">
-<h1>SHNAIL PLATFORMER</h1>
-<button id="startButton" onclick="startGame()">START GAME</button><br>
-<button id="easyModeButton" onclick="toggleEasyMode()">EASY MODE: OFF</button>
+  <h1>SHNAIL PLATFORMER</h1>
+  <button id="startButton" onclick="startGame()">START GAME</button><br>
+  <button id="easyModeButton" onclick="toggleEasyMode()">EASY MODE: OFF</button>
+  <button id="twoPlayerButton" onclick="toggleTwoPlayerMode()">2-PLAYER: OFF</button>
 </div>
 
 <canvas id="game" width="800" height="400"></canvas>
@@ -380,6 +370,7 @@ background:#4CAF50;
   </div>
   <div class="hudRow">⭐ Score: <span id="scoreText">0</span></div>
   <div class="hudRow">🏆 High: <span id="highScoreText">0</span></div>
+  <div class="hudRow">🌍 Biome: <span id="biomeText">Grassland</span></div>
 </div>
 
 <div id="powerupHud">
@@ -391,26 +382,38 @@ background:#4CAF50;
 
 <div id="controlsBox">
 <b>CONTROLS</b><br><br>
-Move: WASD / Arrows<br>
-Jump: W / ↑ / Space<br>
-Dash: Shift<br>
-Shoot: F<br>
-Restart: R<br>
-Pause: esc<br>
-Toggle Menu: I<br>
+<b>P1:</b> Move: WASD | Jump: W/Space | Dash: Left Shift | Shoot: F<br>
+<b>P2:</b> Move: Arrows | Jump: Up | Dash: Right Shift | Shoot: Numpad 0 / Enter<br><br>
+Restart: R | Pause: ESC | Toggle Menu: I<br>
 #shnails4life
 </div>
 
 <script>
 let paused = false;
 let easyMode = false;
+let twoPlayerMode = false;
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const box = document.getElementById("controlsBox");
 const menu = document.getElementById("mainMenu");
 
-// Delta Time Tracker variables
+// Biome Configurations
+const BIOMES = [
+  { name: "Grassland", sky: "#87CEEB", platform: "#3a5", slippery: false, isCloud: false },
+  { name: "Ice Cave", sky: "#1a2a3a", platform: "#aeeeff", slippery: true, isCloud: false },
+  { name: "Lava Core", sky: "#2a0800", platform: "#a32", slippery: false, isCloud: false },
+  { name: "Desert Ruins", sky: "#e6c280", platform: "#b58742", slippery: false, isCloud: false },
+  { name: "Sky Kingdom", sky: "#50B4FF", platform: "rgba(255, 255, 255, 0.85)", slippery: false, isCloud: true }
+];
+
+let currentBiome = BIOMES[0];
+let platformsGeneratedCount = 0;
+let platformsUntilBiomeChange = Math.floor(Math.random() * 51) + 50; // 50-100 platforms
+let fireTurretCounter = 0;
+let platformsUntilFireTurret = Math.floor(Math.random() * 6) + 5; // 5-10 platforms
+let nextBiomeTargetX = 0;
+
 let lastTime = performance.now();
 let dt = 1;
 
@@ -422,6 +425,18 @@ function toggleEasyMode(){
     btn.classList.add("active");
   } else {
     btn.innerText = "EASY MODE: OFF";
+    btn.classList.remove("active");
+  }
+}
+
+function toggleTwoPlayerMode(){
+  twoPlayerMode = !twoPlayerMode;
+  const btn = document.getElementById("twoPlayerButton");
+  if(twoPlayerMode){
+    btn.innerText = "2-PLAYER: ON";
+    btn.classList.add("active");
+  } else {
+    btn.innerText = "2-PLAYER: OFF";
     btn.classList.remove("active");
   }
 }
@@ -472,6 +487,16 @@ let shakeX = 0;
 
 let flash = 0;
 let particles = [];
+let snowflakes = [];
+
+for(let i=0; i<60; i++){
+  snowflakes.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 2 + 1,
+    speed: Math.random() * 1 + 0.5
+  });
+}
 
 let worldX = 0;
 let score = 0;
@@ -501,6 +526,9 @@ let lastFPSUpdate = performance.now();
 let coyoteTime = 0;
 let jumpBuffer = 0;
 
+let coyoteTime2 = 0;
+let jumpBuffer2 = 0;
+
 let timeFreezeTimer = 0;
 let droneTimer = 0;
 let droneAngle = 0;
@@ -521,11 +549,32 @@ let player = {
   tripleShot:false
 };
 
+let player2 = {
+  x:140,y:200,w:30,h:30,
+  dx:0,dy:0,
+  baseSpeed:3,speed:3,jump:10,
+  grounded:false,jumps:0,
+  canWallJump:false,
+  facing:1,dash:0,
+  spawnX:140,spawnY:200,
+  ammo:10,maxAmmo:20,
+  speedBoostTimer:0,
+  shieldHits:0,
+  tripleShot:false
+};
+
 let platforms,enemies,coins,bullets,checkpoints,ammoCrates,mushrooms,powerups;
 let enemyBullets = [];
 
 function resetWorld(){
-  platforms=[{x:0,y:350,w:1000,h:50}];
+  currentBiome = BIOMES[0];
+  platformsGeneratedCount = 0;
+  platformsUntilBiomeChange = Math.floor(Math.random() * 51) + 50;
+  fireTurretCounter = 0;
+  platformsUntilFireTurret = Math.floor(Math.random() * 6) + 5;
+  nextBiomeTargetX = 1000 + (platformsUntilBiomeChange * 130);
+
+  platforms=[{x:0,y:350,w:1000,h:50, color: currentBiome.platform, isCloud: false}];
   enemies=[]; coins=[]; bullets=[]; checkpoints=[]; ammoCrates=[]; enemyBullets=[]; mushrooms=[]; powerups=[];
   worldX=0; score=0;
 
@@ -537,26 +586,37 @@ function resetWorld(){
   player.speedBoostTimer = 0;
   player.shieldHits = 0;
   player.tripleShot = false;
+
+  player2.x=140; player2.y=200;
+  player2.spawnX=140; player2.spawnY=200;
+  player2.dx=0; player2.dy=0;
+  player2.ammo=10;
+  player2.speed = player2.baseSpeed;
+  player2.speedBoostTimer = 0;
+  player2.shieldHits = 0;
+  player2.tripleShot = false;
+
   timeFreezeTimer = 0;
   droneTimer = 0;
   ghostTimer = 0;
 
   coyoteTime=0; jumpBuffer=0;
+  coyoteTime2=0; jumpBuffer2=0;
 }
 
 resetWorld();
 
 let keys={};
 
-function fireBullets(){
-  if(player.tripleShot){
-    bullets.push({x:player.x+15, y:player.y+15, dx:player.facing*6, dy:-1.5});
-    bullets.push({x:player.x+15, y:player.y+15, dx:player.facing*6, dy:0});
-    bullets.push({x:player.x+15, y:player.y+15, dx:player.facing*6, dy:1.5});
+function fireBullets(p = player){
+  if(p.tripleShot){
+    bullets.push({x:p.x+15, y:p.y+15, dx:p.facing*6, dy:-1.5});
+    bullets.push({x:p.x+15, y:p.y+15, dx:p.facing*6, dy:0});
+    bullets.push({x:p.x+15, y:p.y+15, dx:p.facing*6, dy:1.5});
   } else {
-    bullets.push({x:player.x+15, y:player.y+15, dx:player.facing*6, dy:0});
+    bullets.push({x:p.x+15, y:p.y+15, dx:p.facing*6, dy:0});
   }
-  if(!debugInfiniteAmmo) player.ammo--;
+  if(!debugInfiniteAmmo) p.ammo--;
   sfxShoot();
 }
 
@@ -569,12 +629,34 @@ document.addEventListener("keydown",e=>{
   if(e.code==="KeyI")
     box.style.display = box.style.display==="none"?"block":"none";
 
+  // Player 1 Shoot
   if(e.code==="KeyF" && (player.ammo>0 || debugInfiniteAmmo)){
-      fireBullets();
+      fireBullets(player);
   }
 
-  if(e.code==="Space" || e.code==="KeyW" || e.code==="ArrowUp"){
+  // Player 1 Jump
+  if(e.code==="Space" || e.code==="KeyW"){
     jumpBuffer = 6;
+  }
+
+  // Single player Mode Jump with Arrow Up
+  if(!twoPlayerMode && e.code==="ArrowUp"){
+    jumpBuffer = 6;
+  }
+
+  // Player 2 Controls (Only in 2-Player Mode)
+  if(twoPlayerMode){
+    if((e.code==="Numpad0" || e.code==="Enter") && (player2.ammo>0 || debugInfiniteAmmo)){
+      fireBullets(player2);
+    }
+    if(e.code==="ArrowUp"){
+      jumpBuffer2 = 6;
+    }
+    if(e.code==="ShiftRight" && player2.dash<=0){
+      player2.dx=player2.facing*30;
+      sfxDash();
+      player2.dash=60;
+    }
   }
 
   if(debugMode){
@@ -622,7 +704,7 @@ function handleGamepad(){
   if(held(7) && player.ammo > 0){
     if(!player.shootCooldown) player.shootCooldown = 0;
     if(player.shootCooldown <= 0){
-      fireBullets();
+      fireBullets(player);
       player.shootCooldown = 10;
     }
   }
@@ -638,11 +720,12 @@ function updateHUD(){
   document.getElementById("ammoBar").style.width = ammoPercent + "%";
   document.getElementById("scoreText").innerText = score;
   document.getElementById("highScoreText").innerText = highScore;
+  document.getElementById("biomeText").innerText = currentBiome.name;
 
   const shieldHud = document.getElementById("shieldHud");
-  if(player.shieldHits > 0){
+  if(player.shieldHits > 0 || (twoPlayerMode && player2.shieldHits > 0)){
     shieldHud.style.display = "block";
-    document.getElementById("shieldHitsText").innerText = player.shieldHits;
+    document.getElementById("shieldHitsText").innerText = Math.max(player.shieldHits, player2.shieldHits);
   } else { shieldHud.style.display = "none"; }
 
   const freezeHud = document.getElementById("freezeHud");
@@ -685,6 +768,14 @@ function updateParticles(){
     p.life -= dt;
   });
   particles = particles.filter(p=>p.life>0);
+
+  if(currentBiome.name === "Ice Cave"){
+    snowflakes.forEach(s => {
+      s.y += s.speed * dt;
+      s.x += Math.sin(s.y * 0.02) * 0.5 * dt;
+      if(s.y > canvas.height) s.y = 0;
+    });
+  }
 }
 
 /* SHAKE */
@@ -702,13 +793,13 @@ function triggerNuke(){
   sfxEnemy();
   enemies.forEach(e => {
     spawnParticles(e.x + e.w/2, e.y + e.h/2, "orange", 12);
-    addScore(e.type==="turret"?30:20);
+    addScore(e.type.includes("turret")?30:20);
   });
   enemies = [];
   enemyBullets = [];
 }
 
-/* WORLD GENERATION (Endless Mode) */
+/* WORLD GENERATION */
 function generateChunk(){
   let startX = worldX + 800;
 
@@ -716,23 +807,61 @@ function generateChunk(){
     let x = startX + i*130;
     let y = 180 + Math.random()*170;
 
-    platforms.push({x,y,w:100,h:20});
+    platformsGeneratedCount++;
+    fireTurretCounter++;
 
-    if(Math.random()<0.95){
+    // Randomly shift biomes after 50-100 platforms
+    if(platformsGeneratedCount >= platformsUntilBiomeChange){
+      platformsGeneratedCount = 0;
+      platformsUntilBiomeChange = Math.floor(Math.random() * 51) + 50;
+      
+      let nextBiomes = BIOMES.filter(b => b.name !== currentBiome.name);
+      currentBiome = nextBiomes[Math.floor(Math.random() * nextBiomes.length)];
+    }
+
+    let isCloudPlat = currentBiome.isCloud;
+    let platWidth = 100;
+    let platHeight = 20;
+
+    platforms.push({
+      x, y,
+      w: platWidth,
+      h: platHeight,
+      color: currentBiome.platform,
+      isCloud: isCloudPlat
+    });
+
+    nextBiomeTargetX = x;
+
+    // Fire Turrets guaranteed to spawn every 5 to 10 platforms ONLY in Lava Core and NOT in Easy Mode
+    let spawnedFireTurret = false;
+    if(!easyMode && currentBiome.name === "Lava Core" && fireTurretCounter >= platformsUntilFireTurret){
+      enemies.push({ x, y:y-20, w:20, h:20, dx:0, dy:0, type:"fire_turret", hp:4, shootTimer:80 });
+      fireTurretCounter = 0;
+      platformsUntilFireTurret = Math.floor(Math.random() * 6) + 5;
+      spawnedFireTurret = true;
+    }
+
+    if(!spawnedFireTurret && Math.random()<0.95){
       let r = Math.random();
 
-      if(r < 0.15 && !easyMode){
+      // Biome-specific enemies are blocked when easyMode is active
+      if(!easyMode && currentBiome.name === "Desert Ruins" && r < 0.35){
+        enemies.push({ x,y:y-24,w:22,h:24, dx:(Math.random()<0.5?-1:1)*0.4, dy:0, type:"mummy", hp:5 });
+      } else if(!easyMode && currentBiome.name === "Ice Cave" && r < 0.35){
+        enemies.push({ x, y: y - 50, w: 24, h: 18, dx: 0, dy: 0, type: "flying_shnail", hp: 2, hoverBaseY: y - 50, hoverAngle: Math.random() * Math.PI * 2, speed: 1.2 });
+      } else if(r < 0.15 && !easyMode){
         enemies.push({ x,y:y-20,w:20,h:20, dx:0,dy:0, type:"turret", hp:3, shootTimer:60 });
       } else if(r < 0.35){
         enemies.push({ x,y:y-18,w:24,h:18, dx:(Math.random()<0.5?-1:1)*0.6, dy:0, type:"shnail", hp:2 });
-      } else if(r < 0.50){
+      } else if(r < 0.50 && !easyMode){
         enemies.push({ x, y: y - 50, w: 24, h: 18, dx: 0, dy: 0, type: "flying_shnail", hp: 2, hoverBaseY: y - 50, hoverAngle: Math.random() * Math.PI * 2, speed: 1.2 });
       } else if(r < 0.70){
         enemies.push({ x,y:y-20,w:20,h:20, dx:(Math.random()<0.5?-1:1)*1.2, dy:0, type:"normal" });
       } else if(r < 0.85){
         enemies.push({ x, y:y-20, w:24, h:18, dx:0, dy:0, type:"runner", hp:1, dashCooldown:80, dashing:false });
       } else if(!easyMode) {
-        enemies.push({ x,y:y-20,w:22,h:22, dx:0,dy:0, type:"jumper", hp:2, jumpTimer:60 });
+        enemies.push({ x,y:y-22,w:22,h:22, dx:0,dy:0, type:"jumper", hp:2, jumpTimer:60 });
       }
     }
 
@@ -775,16 +904,42 @@ function update(timestamp){
   dt = elapsed / 16.6667;
   if (dt > 3) dt = 3;
 
+  canvas.style.background = currentBiome.sky;
+
   handleGamepad();
 
-  if(player.x>worldX-400) generateChunk();
+  let maxPlayerX = twoPlayerMode ? Math.max(player.x, player2.x) : player.x;
+  if(maxPlayerX > worldX-400) generateChunk();
 
-  if(keys["ArrowRight"]||keys["KeyD"]){
-    player.dx=player.speed; player.facing=1;
-  } else if(keys["ArrowLeft"]||keys["KeyA"]){
-    player.dx=-player.speed; player.facing=-1;
-  } else player.dx *= Math.pow(0.8, dt);
+  // Ice Biome Slippery Controls Physics
+  let accel = currentBiome.slippery ? 0.3 : 1;
+  let friction = currentBiome.slippery ? Math.pow(0.96, dt) : Math.pow(0.8, dt);
 
+  // Player 1 Movement
+  if(keys["KeyD"] || (!twoPlayerMode && keys["ArrowRight"])){
+    player.dx = Math.min(player.speed, player.dx + accel * dt); 
+    player.facing=1;
+  } else if(keys["KeyA"] || (!twoPlayerMode && keys["ArrowLeft"])){
+    player.dx = Math.max(-player.speed, player.dx - accel * dt); 
+    player.facing=-1;
+  } else {
+    player.dx *= friction;
+  }
+
+  // Player 2 Movement
+  if(twoPlayerMode){
+    if(keys["ArrowRight"]){
+      player2.dx = Math.min(player2.speed, player2.dx + accel * dt);
+      player2.facing=1;
+    } else if(keys["ArrowLeft"]){
+      player2.dx = Math.max(-player2.speed, player2.dx - accel * dt);
+      player2.facing=-1;
+    } else {
+      player2.dx *= friction;
+    }
+  }
+
+  // Player 1 Powerup Timers
   if(player.speedBoostTimer > 0){
     player.speedBoostTimer -= dt;
     if(Math.floor(player.speedBoostTimer) % 3 === 0){
@@ -795,12 +950,24 @@ function update(timestamp){
     }
   }
 
+  // Player 2 Powerup Timers
+  if(twoPlayerMode && player2.speedBoostTimer > 0){
+    player2.speedBoostTimer -= dt;
+    if(Math.floor(player2.speedBoostTimer) % 3 === 0){
+      spawnParticles(player2.x + player2.w/2, player2.y + player2.h, "yellow", 1);
+    }
+    if(player2.speedBoostTimer <= 0){
+      player2.speed = player2.baseSpeed;
+    }
+  }
+
   if(timeFreezeTimer > 0) timeFreezeTimer -= dt;
 
   if(ghostTimer > 0){
     ghostTimer -= dt;
     if(Math.floor(ghostTimer) % 5 === 0){
       spawnParticles(player.x + Math.random()*player.w, player.y + Math.random()*player.h, "white", 1);
+      if(twoPlayerMode) spawnParticles(player2.x + Math.random()*player2.w, player2.y + Math.random()*player2.h, "white", 1);
     }
   }
 
@@ -832,13 +999,20 @@ function update(timestamp){
 
   if(debugMode && keys["KeyT"]){
     player.x += 500;
+    if(twoPlayerMode) player2.x += 500;
   }
 
   player.dy += gravity * dt;
   player.x += player.dx * dt;
   player.y += player.dy * dt;
+  if(player.y>canvas.height+200) respawn(player);
 
-  if(player.y>canvas.height+200) respawn();
+  if(twoPlayerMode){
+    player2.dy += gravity * dt;
+    player2.x += player2.dx * dt;
+    player2.y += player2.dy * dt;
+    if(player2.y>canvas.height+200) respawn(player2);
+  }
 
   let wasGrounded = player.grounded;
   player.grounded=false;
@@ -855,11 +1029,34 @@ function update(timestamp){
 
         if(!wasGrounded){
           let count = Math.min(Math.abs(impact)/2, 8);
-          spawnParticles(player.x+player.w/2, player.y+player.h, "white", count);
+          spawnParticles(player.x+player.w/2, player.y+player.h, p.isCloud ? "rgba(255,255,255,0.7)" : "white", count);
         }
       } else player.canWallJump=true;
     }
   });
+
+  if(twoPlayerMode){
+    let wasGrounded2 = player2.grounded;
+    player2.grounded=false;
+    player2.canWallJump=false;
+
+    platforms.forEach(p=>{
+      if(rect(player2,p)){
+        if(player2.dy>0){
+          player2.y=p.y-player2.h;
+          let impact = player2.dy;
+          player2.dy=0;
+          player2.grounded=true;
+          player2.jumps=0;
+
+          if(!wasGrounded2){
+            let count = Math.min(Math.abs(impact)/2, 8);
+            spawnParticles(player2.x+player2.w/2, player2.y+player2.h, p.isCloud ? "rgba(255,255,255,0.7)" : "white", count);
+          }
+        } else player2.canWallJump=true;
+      }
+    });
+  }
 
   if(player.grounded) coyoteTime = 6;
   else coyoteTime -= dt;
@@ -875,7 +1072,23 @@ function update(timestamp){
     jumpBuffer -= dt;
   }
 
-  if((keys["ShiftLeft"]||keys["ShiftRight"]) && player.dash<=0){
+  if(twoPlayerMode){
+    if(player2.grounded) coyoteTime2 = 6;
+    else coyoteTime2 -= dt;
+
+    if(jumpBuffer2 > 0){
+      if(coyoteTime2 > 0 || player2.jumps < 2){
+        player2.dy = -player2.jump;
+        sfxJump();
+        player2.jumps++;
+        jumpBuffer2 = 0;
+        coyoteTime2 = 0;
+      }
+      jumpBuffer2 -= dt;
+    }
+  }
+
+  if((keys["ShiftLeft"]) && player.dash<=0){
     player.dx=player.facing*30;
     sfxDash();
     player.dash=60;
@@ -883,7 +1096,8 @@ function update(timestamp){
 
   if(!debugMode){
     if(player.dash>0) player.dash -= dt;
-  } else { player.dash = 0; }
+    if(twoPlayerMode && player2.dash>0) player2.dash -= dt;
+  } else { player.dash = 0; player2.dash = 0; }
 
   if(debugMode){
     if(keys["KeyQ"]) player.y -= 5 * dt;
@@ -893,11 +1107,16 @@ function update(timestamp){
   let timeScale = (timeFreezeTimer > 0 ? 0.3 : 1.0) * dt;
 
   enemies.forEach(e=>{
+    let targetP = player;
+    if(twoPlayerMode && Math.abs(player2.x - e.x) < Math.abs(player.x - e.x)){
+      targetP = player2;
+    }
+
     if(e.type === "flying_shnail"){
       e.hoverAngle += 0.05 * timeScale;
       
-      let dirX = player.x - e.x;
-      let dirY = player.y - e.hoverBaseY;
+      let dirX = targetP.x - e.x;
+      let dirY = targetP.y - e.hoverBaseY;
       let dist = Math.hypot(dirX, dirY);
 
       if(dist > 0){
@@ -916,7 +1135,7 @@ function update(timestamp){
     if(e.type === "jumper"){
       e.jumpTimer -= timeScale;
       if(e.jumpTimer <= 0){
-        let dx = player.x - e.x;
+        let dx = targetP.x - e.x;
         e.dx = dx > 0 ? 2 : -2;
         e.dy = -10;
         e.jumpTimer = 90;
@@ -926,23 +1145,45 @@ function update(timestamp){
     if(e.type === "turret"){
       e.shootTimer -= timeScale;
       if(e.shootTimer <= 0){
-        let dx = player.x - e.x;
-        let dy = player.y - e.y;
+        let dx = targetP.x - e.x;
+        let dy = targetP.y - e.y;
         let len = Math.hypot(dx,dy);
         dx/=len; dy/=len;
 
-        enemyBullets.push({ x:e.x+e.w/2, y:e.y+e.h/2, dx:dx*3, dy:dy*3 });
+        enemyBullets.push({ x:e.x+e.w/2, y:e.y+e.h/2, dx:dx*3, dy:dy*3, color: "violet" });
         sfxTurret();
         e.shootTimer = 90;
+      }
+    }
+
+    if(e.type === "fire_turret"){
+      e.shootTimer -= timeScale;
+      if(e.shootTimer <= 0){
+        let dx = targetP.x - e.x;
+        let dy = targetP.y - e.y;
+        let baseAngle = Math.atan2(dy, dx);
+        
+        [-0.2, 0, 0.2].forEach(angleOffset => {
+          let angle = baseAngle + angleOffset;
+          enemyBullets.push({ 
+            x: e.x+e.w/2, 
+            y: e.y+e.h/2, 
+            dx: Math.cos(angle)*3.5, 
+            dy: Math.sin(angle)*3.5,
+            color: "#ff4400"
+          });
+        });
+        sfxTurret();
+        e.shootTimer = 100;
       }
     }
     
     if(e.type === "runner"){
       e.dashCooldown -= timeScale;
       if(!e.dashing && e.dashCooldown <= 0){
-        if(Math.abs(player.x - e.x) < 220 && Math.abs(player.y - e.y) < 40){
+        if(Math.abs(targetP.x - e.x) < 220 && Math.abs(targetP.y - e.y) < 40){
           e.dashing = true;
-          e.dx = player.x > e.x ? 8 : -8;
+          e.dx = targetP.x > e.x ? 8 : -8;
         }
       }
       if(e.dashing){
@@ -971,6 +1212,7 @@ function update(timestamp){
         }
     }
 
+    // Player 1 Enemy Collision
     if(rect(player,e) && !debugInvincible && ghostTimer <= 0){
       if(player.shieldHits > 0){
         player.shieldHits--;
@@ -981,7 +1223,22 @@ function update(timestamp){
         addShake(10);
         flash = 10;
         spawnParticles(player.x,player.y,"white");
-        respawn();
+        respawn(player);
+      }
+    }
+
+    // Player 2 Enemy Collision
+    if(twoPlayerMode && rect(player2,e) && !debugInvincible && ghostTimer <= 0){
+      if(player2.shieldHits > 0){
+        player2.shieldHits--;
+        spawnParticles(player2.x+player2.w/2, player2.y+player2.h/2, "pink", 10);
+        addShake(5);
+        e.dead = true;
+      } else {
+        addShake(10);
+        flash = 10;
+        spawnParticles(player2.x,player2.y,"pink");
+        respawn(player2);
       }
     }
   });
@@ -990,7 +1247,8 @@ function update(timestamp){
     b.x += b.dx * timeScale;
     b.y += b.dy * timeScale;
 
-    if(rect(player, {x:b.x, y:b.y, w:6, h:6}) && !debugInvincible && ghostTimer <= 0){
+    let bRect = {x:b.x, y:b.y, w:6, h:6};
+    if(rect(player, bRect) && !debugInvincible && ghostTimer <= 0){
         if(player.shieldHits > 0){
           player.shieldHits--;
           spawnParticles(player.x+player.w/2, player.y+player.h/2, "cyan", 6);
@@ -999,7 +1257,20 @@ function update(timestamp){
           addShake(10);
           flash = 10;
           spawnParticles(player.x, player.y, "purple");
-          respawn();
+          respawn(player);
+        }
+    }
+
+    if(twoPlayerMode && rect(player2, bRect) && !debugInvincible && ghostTimer <= 0){
+        if(player2.shieldHits > 0){
+          player2.shieldHits--;
+          spawnParticles(player2.x+player2.w/2, player2.y+player2.h/2, "pink", 6);
+          b.dead = true;
+        } else {
+          addShake(10);
+          flash = 10;
+          spawnParticles(player2.x, player2.y, "pink");
+          respawn(player2);
         }
     }
   });
@@ -1023,12 +1294,12 @@ function update(timestamp){
         flash = 6;
         spawnParticles(e.x,e.y,e.type==="flying_shnail"?"deepskyblue":"lime");
 
-        if(e.type==="shnail" || e.type==="flying_shnail" || e.type==="turret" || e.type==="jumper" || e.type==="runner"){
+        if(e.type==="shnail" || e.type==="flying_shnail" || e.type.includes("turret") || e.type==="jumper" || e.type==="runner" || e.type==="mummy"){
           e.hp--;
           if(e.hp<=0){
             spawnParticles(e.x,e.y,e.type==="flying_shnail"?"dodgerblue":"green");
             e.dead=true;
-            addScore(e.type==="turret"?30:20);
+            addScore(e.type.includes("turret")||e.type==="mummy"?30:20);
           }
         } else {
           e.dead=true;
@@ -1045,7 +1316,8 @@ function update(timestamp){
   enemies = enemies.filter(e=>!e.dead);
 
   coins.forEach(c=>{
-    if(!c.taken && rect(player,{x:c.x,y:c.y,w:10,h:10})){
+    let cRect = {x:c.x,y:c.y,w:10,h:10};
+    if(!c.taken && (rect(player, cRect) || (twoPlayerMode && rect(player2, cRect)))){
       c.taken=true;
       sfxCoin();
       addScore(5);
@@ -1053,46 +1325,60 @@ function update(timestamp){
   });
 
   ammoCrates.forEach(a=>{
-    if(!a.taken && rect(player,{x:a.x,y:a.y,w:12,h:12})){
-      a.taken=true;
-      player.ammo=Math.min(player.ammo+5,player.maxAmmo);
+    let aRect = {x:a.x,y:a.y,w:12,h:12};
+    if(!a.taken){
+      if(rect(player, aRect)){
+        a.taken=true;
+        player.ammo=Math.min(player.ammo+5,player.maxAmmo);
+      } else if(twoPlayerMode && rect(player2, aRect)){
+        a.taken=true;
+        player2.ammo=Math.min(player2.ammo+5,player2.maxAmmo);
+      }
     }
   });
 
   mushrooms.forEach(m=>{
-    if(!m.taken && rect(player,{x:m.x,y:m.y,w:16,h:16})){
-      m.taken=true;
-      sfxPowerup();
-      player.speed = 5.5;
-      player.speedBoostTimer = 300;
-      spawnParticles(player.x, player.y, "gold", 12);
-      addScore(15);
+    let mRect = {x:m.x,y:m.y,w:16,h:16};
+    if(!m.taken){
+      let pHit = rect(player, mRect) ? player : (twoPlayerMode && rect(player2, mRect) ? player2 : null);
+      if(pHit){
+        m.taken=true;
+        sfxPowerup();
+        pHit.speed = 5.5;
+        pHit.speedBoostTimer = 300;
+        spawnParticles(pHit.x, pHit.y, "gold", 12);
+        addScore(15);
+      }
     }
   });
 
   powerups.forEach(p=>{
-    if(!p.taken && rect(player,{x:p.x,y:p.y,w:16,h:16})){
-      p.taken = true;
-      sfxPowerup();
-      if(p.type === "shield"){
-        player.shieldHits = 5;
-        spawnParticles(player.x+15, player.y+15, "cyan", 12);
-      } else if(p.type === "triple"){
-        player.tripleShot = true;
-        spawnParticles(player.x+15, player.y+15, "orange", 12);
-      } else if(p.type === "freeze"){
-        timeFreezeTimer = 600;
-        spawnParticles(player.x+15, player.y+15, "purple", 12);
-      } else if(p.type === "drone"){
-        droneTimer = 900;
-        spawnParticles(player.x+15, player.y+15, "#00ff88", 12);
-      } else if(p.type === "ghost"){
-        ghostTimer = 480;
-        spawnParticles(player.x+15, player.y+15, "white", 12);
-      } else if(p.type === "nuke"){
-        triggerNuke();
+    let pRect = {x:p.x,y:p.y,w:16,h:16};
+    if(!p.taken){
+      let pHit = rect(player, pRect) ? player : (twoPlayerMode && rect(player2, pRect) ? player2 : null);
+      if(pHit){
+        p.taken = true;
+        sfxPowerup();
+        if(p.type === "shield"){
+          pHit.shieldHits = 5;
+          spawnParticles(pHit.x+15, pHit.y+15, "cyan", 12);
+        } else if(p.type === "triple"){
+          pHit.tripleShot = true;
+          spawnParticles(pHit.x+15, pHit.y+15, "orange", 12);
+        } else if(p.type === "freeze"){
+          timeFreezeTimer = 600;
+          spawnParticles(pHit.x+15, pHit.y+15, "purple", 12);
+        } else if(p.type === "drone"){
+          droneTimer = 900;
+          spawnParticles(pHit.x+15, pHit.y+15, "#00ff88", 12);
+        } else if(p.type === "ghost"){
+          ghostTimer = 480;
+          spawnParticles(pHit.x+15, pHit.y+15, "white", 12);
+        } else if(p.type === "nuke"){
+          triggerNuke();
+        }
+        addScore(25);
       }
-      addScore(25);
     }
   });
 
@@ -1101,10 +1387,14 @@ function update(timestamp){
       player.spawnX=cp.x;
       player.spawnY=cp.y;
     }
+    if(twoPlayerMode && player2.x>cp.x){
+      player2.spawnX=cp.x;
+      player2.spawnY=cp.y;
+    }
   });
 
-  let targetCamera = player.x - 200;
-  cameraX += (targetCamera - cameraX) * (1 - Math.pow(0.9, dt));
+  let cameraTarget = twoPlayerMode ? (player.x + player2.x) / 2 - 200 : player.x - 200;
+  cameraX += (cameraTarget - cameraX) * (1 - Math.pow(0.9, dt));
 
   applyShake();
   updateParticles();
@@ -1114,19 +1404,27 @@ function update(timestamp){
   requestAnimationFrame(update);
 }
 
-function respawn(){
+function respawn(p = player){
   sfxDeath();
-  player.x=player.spawnX;
-  player.y=player.spawnY;
-  player.dx=0;
-  player.dy=0;
-  player.speed = player.baseSpeed;
-  player.speedBoostTimer = 0;
-  player.shieldHits = 0;
-  player.tripleShot = false;
-  timeFreezeTimer = 0;
-  droneTimer = 0;
-  ghostTimer = 0;
+  p.x=p.spawnX;
+  p.y=p.spawnY;
+  p.dx=0;
+  p.dy=0;
+  p.speed = p.baseSpeed;
+  p.speedBoostTimer = 0;
+  p.shieldHits = 0;
+  p.tripleShot = false;
+}
+
+function drawCloudPlatform(x, y, w, h){
+  ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+  ctx.beginPath();
+  ctx.arc(x + 10, y + 10, 12, 0, Math.PI * 2);
+  ctx.arc(x + 30, y + 5, 15, 0, Math.PI * 2);
+  ctx.arc(x + 60, y + 5, 16, 0, Math.PI * 2);
+  ctx.arc(x + 85, y + 10, 12, 0, Math.PI * 2);
+  ctx.rect(x + 10, y, w - 20, h);
+  ctx.fill();
 }
 
 function draw(){
@@ -1140,6 +1438,15 @@ function draw(){
   }
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(currentBiome.name === "Ice Cave"){
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    snowflakes.forEach(s => {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
 
   if(timeFreezeTimer > 0){
     ctx.fillStyle="rgba(166, 77, 255, 0.15)";
@@ -1156,8 +1463,12 @@ function draw(){
   ctx.translate(-cameraX + shakeX, 0);
 
   platforms.forEach(p=>{
-    ctx.fillStyle="#3a5";
-    ctx.fillRect(p.x,p.y,p.w,p.h);
+    if(p.isCloud){
+      drawCloudPlatform(p.x, p.y, p.w, p.h);
+    } else {
+      ctx.fillStyle=p.color || currentBiome.platform;
+      ctx.fillRect(p.x,p.y,p.w,p.h);
+    }
   });
 
   coins.forEach(c=>{
@@ -1246,11 +1557,18 @@ function draw(){
       ctx.fillRect(e.x+6,e.y+6,e.w,10);
       ctx.fillRect(e.x+e.w+4,e.y+4,2,4);
       ctx.fillRect(e.x+e.w+7,e.y+4,2,4);
-      // Wings
       ctx.fillStyle="lightblue";
       let wingOffset = Math.sin(e.hoverAngle * 3) * 3;
       ctx.fillRect(e.x+4, e.y-8 + wingOffset, 8, 4);
       ctx.restore();
+    } else if(e.type==="mummy"){
+      ctx.fillStyle="#e0c068";
+      ctx.fillRect(e.x, e.y, e.w, e.h);
+      ctx.fillStyle="#333";
+      ctx.fillRect(e.x+3, e.y+4, e.w-6, 3);
+      ctx.fillStyle="red";
+      ctx.fillRect(e.x+5, e.y+5, 2, 2);
+      ctx.fillRect(e.x+12, e.y+5, 2, 2);
     } else if(e.type==="jumper"){
       ctx.fillStyle="cyan";
       ctx.fillRect(e.x,e.y,e.w,e.h);
@@ -1262,6 +1580,11 @@ function draw(){
       ctx.fillRect(e.x,e.y,e.w,e.h);
       ctx.fillStyle="violet";
       ctx.fillRect(e.x+e.w, e.y+6, 8, 4);
+    } else if(e.type==="fire_turret"){
+      ctx.fillStyle="#d32f2f";
+      ctx.fillRect(e.x,e.y,e.w,e.h);
+      ctx.fillStyle="#ff6f00";
+      ctx.fillRect(e.x+e.w, e.y+4, 8, 8);
     } else if(e.type==="runner"){
       ctx.save();
       if(e.dx<0){
@@ -1284,7 +1607,7 @@ function draw(){
   });
 
   enemyBullets.forEach(b=>{
-    ctx.fillStyle="violet";
+    ctx.fillStyle=b.color || "violet";
     ctx.fillRect(b.x,b.y,6,6);
   });
 
@@ -1310,6 +1633,7 @@ function draw(){
     ctx.fillRect(p.x,p.y,3,3);
   });
 
+  // Render Player 1
   ctx.save();
   if(ghostTimer > 0){
     ctx.globalAlpha = 0.45;
@@ -1326,6 +1650,28 @@ function draw(){
     ctx.stroke();
   }
 
+
+  if(twoPlayerMode){
+    ctx.save();
+    if(ghostTimer > 0){
+      ctx.globalAlpha = 0.45;
+    }
+    
+    // Player 2 (pink)
+    ctx.fillStyle = player2.speedBoostTimer > 0 ? "yellow" : "#ff69b4";
+    ctx.fillRect(player2.x, player2.y, player2.w, player2.h);
+
+    ctx.restore();
+
+    if(player2.shieldHits > 0){
+      ctx.strokeStyle = "pink";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(player2.x + player2.w/2, player2.y + player2.h/2, player2.w, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
   if(droneTimer > 0){
     let droneX = player.x + player.w/2 + Math.cos(droneAngle) * 35;
     let droneY = player.y - 15 + Math.sin(droneAngle) * 10;
@@ -1340,6 +1686,7 @@ function draw(){
     enemies.forEach(e=>{ ctx.strokeRect(e.x, e.y, e.w, e.h); });
     ctx.strokeStyle="cyan";
     ctx.strokeRect(player.x, player.y, player.w, player.h);
+    if(twoPlayerMode) ctx.strokeRect(player2.x, player2.y, player2.w, player2.h);
   }
 
   ctx.restore();
@@ -1349,7 +1696,7 @@ function draw(){
   ctx.fillText("Ammo: "+player.ammo+"/"+player.maxAmmo,10,60);
   ctx.fillText("I = Controls",10,40);
 
-  if(player.speedBoostTimer > 0){
+  if(player.speedBoostTimer > 0 || (twoPlayerMode && player2.speedBoostTimer > 0)){
     ctx.fillStyle="yellow";
     ctx.fillText("⚡ SPEED BOOST!", 10, 80);
   }
@@ -1360,26 +1707,29 @@ function draw(){
     ctx.fillText("⚠ DEBUG MODE",10,100);
 
     ctx.fillStyle="rgba(0,0,0,.75)";
-    ctx.fillRect(560,10,230,240);
+    ctx.fillRect(550,10,240,260);
 
     ctx.strokeStyle="lime";
-    ctx.strokeRect(560,10,230,240);
+    ctx.strokeRect(550,10,240,260);
 
     ctx.fillStyle="lime";
     ctx.font="14px monospace";
-    ctx.fillText("DEBUG MODE",575,30);
+    ctx.fillText("DEBUG MODE",565,30);
+
+    let distanceToNextBiome = Math.floor(nextBiomeTargetX - player.x);
 
     ctx.fillStyle="white";
-    ctx.fillText("Invincible: " +(debugInvincible ? "ON" : "OFF"),575,55);
-    ctx.fillText("Infinite Ammo: " +(debugInfiniteAmmo ? "ON" : "OFF"),575,75);
-    ctx.fillText("Hitboxes: " +(debugHitboxes ? "ON" : "OFF"),575,95);
-    ctx.fillText("Noclip: " +(noclip ? "ON" : "OFF"),575,115);
-    ctx.fillText("Player X: "+Math.floor(player.x),575,135);
-    ctx.fillText("Player Y: "+Math.floor(player.y),575,155);
-    ctx.fillText("Velocity X: "+player.dx.toFixed(2),575,175);
-    ctx.fillText("Velocity Y: "+player.dy.toFixed(2),575,195);
-    ctx.fillText("Enemies: "+enemies.length,575,215);
-    ctx.fillText("FPS: "+fps,575,235);
+    ctx.fillText("Invincible: " +(debugInvincible ? "ON" : "OFF"),565,55);
+    ctx.fillText("Infinite Ammo: " +(debugInfiniteAmmo ? "ON" : "OFF"),565,75);
+    ctx.fillText("Hitboxes: " +(debugHitboxes ? "ON" : "OFF"),565,95);
+    ctx.fillText("Noclip: " +(noclip ? "ON" : "OFF"),565,115);
+    ctx.fillText("Next Biome: "+distanceToNextBiome+" px",565,135);
+    ctx.fillText("Player X: "+Math.floor(player.x),565,155);
+    ctx.fillText("Player Y: "+Math.floor(player.y),565,175);
+    ctx.fillText("Velocity X: "+player.dx.toFixed(2),565,195);
+    ctx.fillText("Velocity Y: "+player.dy.toFixed(2),565,215);
+    ctx.fillText("Enemies: "+enemies.length,565,235);
+    ctx.fillText("FPS: "+fps,565,255);
 }
 
   if(debugPopup > 0){
@@ -1420,7 +1770,7 @@ if ("serviceWorker" in navigator) {
 
 <script>
 const SUPABASE_URL = "https://mpnybsxtwcbllrxouodw.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wbnlic3h0d2NibGxyeG91b2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NTk4NjksImV4cCI6MjA5OTMzNTg2OX0.un6Yd4hbepBWIJ9rOmLKmxvzuDlqA910h38D8PH6SMY";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRefiI6Im1wbnlic3h0d2NibGxyeG91b2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NTk4NjksImV4cCI6MjA5OTMzNTg2OX0.un6Yd4hbepBWIJ9rOmLKmxvzuDlqA910h38D8PH6SMY";
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
