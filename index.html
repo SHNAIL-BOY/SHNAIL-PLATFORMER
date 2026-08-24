@@ -105,6 +105,21 @@ align-items:center;
 color:#7CFF7C;
 font-weight:bold;
 border-bottom:1px solid #333;
+cursor:default;
+}
+
+#chatHeader button{
+margin-left:8px;
+background:#333;
+border:none;
+color:white;
+cursor:pointer;
+padding:2px 8px;
+border-radius:4px;
+}
+
+#chatHeader button:hover{
+background:#555;
 }
 
 #onlineCount{
@@ -207,81 +222,43 @@ background:#38c756;
     }
 }    
 
-    #sendButton:disabled{
+#sendButton:disabled{
     background:#666 !important;
     cursor:not-allowed;
     opacity:0.7;
 }
 
-    #chatHeader{
-
-display:flex;
-justify-content:space-between;
-align-items:center;
-cursor:default;
-
-}
-
-#chatHeader button{
-
-margin-left:8px;
-background:#333;
-border:none;
-color:white;
-cursor:pointer;
-padding:2px 8px;
-border-radius:4px;
-
-}
-
-#chatHeader button:hover{
-
-background:#555;
-
-}
-
 #resizeHandle{
-
 height:8px;
 background:#2f2f2f;
 cursor:ns-resize;
-
 }
 
 #resizeHandle:hover{
-
 background:#4CAF50;
-
 }
 
-    #chatBox.minimized{
+#chatBox.minimized{
     height:45px !important;
 }
 
-    #discordBtn{
+#discordBtn{
     position:fixed;
     left:15px;
     top:15px;
-
     width:54px;
     height:54px;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     background:#111;
     border:2px solid #2ed84b;
     border-radius:12px;
-
     color:#2ed84b;
     font-size:28px;
     text-decoration:none;
-
     font-family:monospace;
-
     box-shadow:0 0 12px rgba(46,216,75,.25);
-
     transition:.15s;
     z-index:999;
 }
@@ -295,23 +272,18 @@ background:#4CAF50;
     transform:scale(.95);
 }
 
-    #discordBtn::after{
+#discordBtn::after{
     content:"Join The Discord";
     position:absolute;
     left:65px;
     white-space:nowrap;
-
     background:#111;
     color:#2ed84b;
-
     border:1px solid #2ed84b;
     border-radius:6px;
-
     padding:6px 10px;
-
     opacity:0;
     pointer-events:none;
-
     transition:.15s;
 }
 
@@ -319,15 +291,15 @@ background:#4CAF50;
     opacity:1;
 }
 
-    #discordBtn img{
+#discordBtn img{
     width:40px;
     height:30px;
 }
 
-    .hudRow{ margin-bottom:5px; font-size:10px; }
-    .bar{ width:100%; height:6px; background:#333; margin-top:2px; }
-    #ammoBar{ height:100%; width:100%; background:orange; }
-  </style>
+.hudRow{ margin-bottom:5px; font-size:10px; }
+.bar{ width:100%; height:6px; background:#333; margin-top:2px; }
+#ammoBar{ height:100%; width:100%; background:orange; }
+</style>
 </head>
 <body>
 
@@ -399,7 +371,6 @@ const ctx = canvas.getContext("2d");
 const box = document.getElementById("controlsBox");
 const menu = document.getElementById("mainMenu");
 
-// Biome Configurations
 const BIOMES = [
   { name: "Grassland", sky: "#87CEEB", platform: "#3a5", slippery: false, isCloud: false },
   { name: "Ice Cave", sky: "#1a2a3a", platform: "#aeeeff", slippery: true, isCloud: false },
@@ -410,9 +381,9 @@ const BIOMES = [
 
 let currentBiome = BIOMES[0];
 let platformsGeneratedCount = 0;
-let platformsUntilBiomeChange = Math.floor(Math.random() * 51) + 50; // 50-100 platforms
+let platformsUntilBiomeChange = Math.floor(Math.random() * 51) + 50;
 let fireTurretCounter = 0;
-let platformsUntilFireTurret = Math.floor(Math.random() * 6) + 5; // 5-10 platforms
+let platformsUntilFireTurret = Math.floor(Math.random() * 6) + 5;
 let nextBiomeTargetX = 0;
 
 let lastTime = performance.now();
@@ -452,7 +423,6 @@ function startGame(){
 
 const gravity = 0.5;
 
-// SFX
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function beep(freq, duration, type="square", volume=0.08){
@@ -632,22 +602,18 @@ document.addEventListener("keydown",e=>{
   if(e.code==="KeyI")
     box.style.display = box.style.display==="none"?"block":"none";
 
-  // Player 1 Shoot
   if(e.code==="KeyF" && (player.ammo>0 || debugInfiniteAmmo)){
       fireBullets(player);
   }
 
-  // Player 1 Jump
   if(e.code==="Space" || e.code==="KeyW"){
     jumpBuffer = 6;
   }
 
-  // Single player Mode Jump with Arrow Up
   if(!twoPlayerMode && e.code==="ArrowUp"){
     jumpBuffer = 6;
   }
 
-  // Player 2 Controls (Only in 2-Player Mode)
   if(twoPlayerMode){
     if((e.code==="Numpad0" || e.code==="Enter") && (player2.ammo>0 || debugInfiniteAmmo)){
       fireBullets(player2);
@@ -680,7 +646,6 @@ document.addEventListener("keydown",e=>{
 
 document.addEventListener("keyup",e=>keys[e.code]=false);
 
-/* GAMEPAD */
 let prevButtons = [];
 function handleGamepad(){
   const gp = navigator.getGamepads()[0];
@@ -717,7 +682,6 @@ function handleGamepad(){
   prevButtons = gp.buttons.map(b => b.pressed);
 }
 
-/* HUD */
 function updateHUD(){
   let ammoPercent = (player.ammo / player.maxAmmo) * 100;
   document.getElementById("ammoBar").style.width = ammoPercent + "%";
@@ -756,7 +720,6 @@ function updateHUD(){
   } else { angelHud.style.display = "none"; }
 }
 
-/* PARTICLES */
 function spawnParticles(x,y,color,count=8){
   for(let i=0;i<count;i++){
     particles.push({
@@ -787,7 +750,6 @@ function updateParticles(){
   }
 }
 
-/* SHAKE */
 function addShake(amount){ shake = Math.max(shake, amount); }
 function applyShake(){
   if(shake > 0){
@@ -808,7 +770,6 @@ function triggerNuke(){
   enemyBullets = [];
 }
 
-/* WORLD GENERATION */
 function generateChunk(){
   let startX = worldX + 800;
 
@@ -819,7 +780,6 @@ function generateChunk(){
     platformsGeneratedCount++;
     fireTurretCounter++;
 
-    // Randomly shift biomes after 50-100 platforms
     if(platformsGeneratedCount >= platformsUntilBiomeChange){
       platformsGeneratedCount = 0;
       platformsUntilBiomeChange = Math.floor(Math.random() * 51) + 50;
@@ -842,7 +802,6 @@ function generateChunk(){
 
     nextBiomeTargetX = x;
 
-    // Fire Turrets guaranteed to spawn every 5 to 10 platforms ONLY in Lava Core and NOT in Easy Mode
     let spawnedFireTurret = false;
     if(!easyMode && currentBiome.name === "Lava Core" && fireTurretCounter >= platformsUntilFireTurret){
       enemies.push({ x, y:y-20, w:20, h:20, dx:0, dy:0, type:"fire_turret", hp:4, shootTimer:80 });
@@ -854,7 +813,6 @@ function generateChunk(){
     if(!spawnedFireTurret && Math.random()<0.95){
       let r = Math.random();
 
-      // Biome-specific enemies are blocked when easyMode is active
       if(!easyMode && currentBiome.name === "Desert Ruins" && r < 0.35){
         enemies.push({ x,y:y-24,w:22,h:24, dx:(Math.random()<0.5?-1:1)*0.4, dy:0, type:"mummy", hp:5 });
       } else if(!easyMode && currentBiome.name === "Ice Cave" && r < 0.35){
@@ -879,7 +837,6 @@ function generateChunk(){
     if(Math.random()<0.15) ammoCrates.push({x:x+50,y:y-20,taken:false});
     if(Math.random()<0.10) mushrooms.push({x:x+70,y:y-16,taken:false});
 
-    // Angels spawn exclusively in Sky Kingdom (Reduced spawn rate to 0.12)
     if(currentBiome.name === "Sky Kingdom" && Math.random() < 0.12){
       angels.push({ x: x+35, y: y-60, w: 24, h: 30, hoverAngle: Math.random()*Math.PI*2, basey: y-60, taken: false });
     }
@@ -925,11 +882,9 @@ function update(timestamp){
   let maxPlayerX = twoPlayerMode ? Math.max(player.x, player2.x) : player.x;
   if(maxPlayerX > worldX-400) generateChunk();
 
-  // Ice Biome Slippery Controls Physics
   let accel = currentBiome.slippery ? 0.3 : 1;
   let friction = currentBiome.slippery ? Math.pow(0.96, dt) : Math.pow(0.8, dt);
 
-  // Player 1 Movement
   if(keys["KeyD"] || (!twoPlayerMode && keys["ArrowRight"])){
     player.dx = Math.min(player.speed, player.dx + accel * dt); 
     player.facing=1;
@@ -940,7 +895,6 @@ function update(timestamp){
     player.dx *= friction;
   }
 
-  // Player 2 Movement
   if(twoPlayerMode){
     if(keys["ArrowRight"]){
       player2.dx = Math.min(player2.speed, player2.dx + accel * dt);
@@ -953,7 +907,6 @@ function update(timestamp){
     }
   }
 
-  // Player 1 Powerup Timers
   if(player.speedBoostTimer > 0){
     player.speedBoostTimer -= dt;
     if(Math.floor(player.speedBoostTimer) % 3 === 0){
@@ -964,7 +917,6 @@ function update(timestamp){
     }
   }
 
-  // Player 2 Powerup Timers
   if(twoPlayerMode && player2.speedBoostTimer > 0){
     player2.speedBoostTimer -= dt;
     if(Math.floor(player2.speedBoostTimer) % 3 === 0){
@@ -989,7 +941,7 @@ function update(timestamp){
     angelPowerTimer -= dt;
     if(Math.floor(angelPowerTimer) % 4 === 0){
       spawnParticles(player.x + Math.random()*player.w, player.y + player.h, "#fff700", 1);
-      if(twoPlayerMode) spawnParticles(player2.x + Math.random()*player2.w, player2.y + player2.h, "#fff700", 1);
+      if(twoPlayerMode) spawnParticles(player2.x + Math.random()*player2.w, player2.y + Math.random()*player2.h, "#fff700", 1);
     }
   }
 
@@ -1024,7 +976,6 @@ function update(timestamp){
     if(twoPlayerMode) player2.x += 500;
   }
 
-  // Hold jump key to fly up when Angel wings powerup is active
   let isP1HoldingJump = keys["Space"] || keys["KeyW"] || (!twoPlayerMode && keys["ArrowUp"]);
   if(angelPowerTimer > 0 && isP1HoldingJump){
     player.dy = -6;
@@ -1253,7 +1204,6 @@ function update(timestamp){
         }
     }
 
-    // Player 1 Enemy Collision
     if(rect(player,e) && !debugInvincible && ghostTimer <= 0){
       if(player.shieldHits > 0){
         player.shieldHits--;
@@ -1268,7 +1218,6 @@ function update(timestamp){
       }
     }
 
-    // Player 2 Enemy Collision
     if(twoPlayerMode && rect(player2,e) && !debugInvincible && ghostTimer <= 0){
       if(player2.shieldHits > 0){
         player2.shieldHits--;
@@ -1284,7 +1233,6 @@ function update(timestamp){
     }
   });
 
-  // Update Frost Slime Ice Hazards
   iceHazards.forEach(hz => {
     hz.life -= timeScale;
     if(rect(player, hz) && !debugInvincible && ghostTimer <= 0){
@@ -1296,7 +1244,6 @@ function update(timestamp){
   });
   iceHazards = iceHazards.filter(hz => hz.life > 0);
 
-  // Update Sky Kingdom Angels
   angels.forEach(ang => {
     if(!ang.taken){
       ang.hoverAngle += 0.04 * dt;
@@ -1308,7 +1255,7 @@ function update(timestamp){
       if(p1Hit || p2Hit){
         ang.taken = true;
         sfxPowerup();
-        angelPowerTimer = 600; // 10 seconds of divine flight
+        angelPowerTimer = 600;
         spawnParticles(ang.x+ang.w/2, ang.y+ang.h/2, "#fff700", 16);
         addScore(50);
       }
@@ -1550,19 +1497,18 @@ function draw(){
 
   angels.forEach(ang => {
     if(!ang.taken){
-      // Wings
       ctx.fillStyle = "white";
       ctx.beginPath();
       ctx.ellipse(ang.x-4, ang.y+12, 10, 5, -0.4, 0, Math.PI*2);
       ctx.ellipse(ang.x+ang.w+4, ang.y+12, 10, 5, 0.4, 0, Math.PI*2);
       ctx.fill();
-      // Halo
+
       ctx.strokeStyle = "gold";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.ellipse(ang.x+ang.w/2, ang.y-2, 8, 3, 0, 0, Math.PI*2);
       ctx.stroke();
-      // Body
+
       ctx.fillStyle = "#fff8dc";
       ctx.fillRect(ang.x+4, ang.y+6, ang.w-8, ang.h-6);
       ctx.fillStyle = "#ffdbac";
@@ -1606,17 +1552,17 @@ function draw(){
         ctx.fillStyle = "#a64dff";
         ctx.fillRect(p.x, p.y, 16, 16);
         ctx.fillStyle = "white";
-        ctx.fillText("️❄", p.x, p.y+13);
+        ctx.fillText("❄", p.x, p.y+13);
       } else if(p.type === "drone"){
         ctx.fillStyle = "#00ff88";
         ctx.fillRect(p.x, p.y, 16, 16);
         ctx.fillStyle = "black";
-        ctx.fillText(" ", p.x, p.y+13);
+        ctx.fillText("🤖", p.x, p.y+13);
       } else if(p.type === "ghost"){
         ctx.fillStyle = "#e0e0e0";
         ctx.fillRect(p.x, p.y, 16, 16);
         ctx.fillStyle = "black";
-        ctx.fillText("𓁹", p.x, p.y+13);
+        ctx.fillText("👻", p.x, p.y+13);
       } else if(p.type === "nuke"){
         ctx.fillStyle = "#ff3333";
         ctx.fillRect(p.x, p.y, 16, 16);
@@ -1740,7 +1686,6 @@ function draw(){
     ctx.fillRect(p.x,p.y,3,3);
   });
 
-  // Render Player 1
   ctx.save();
   if(ghostTimer > 0){
     ctx.globalAlpha = 0.45;
@@ -1771,7 +1716,6 @@ function draw(){
       ctx.globalAlpha = 0.45;
     }
     
-    // Player 2 (pink)
     ctx.fillStyle = player2.speedBoostTimer > 0 ? "yellow" : "#ff69b4";
     ctx.fillRect(player2.x, player2.y, player2.w, player2.h);
 
@@ -1891,12 +1835,13 @@ if ("serviceWorker" in navigator) {
 
 <script>
 const SUPABASE_URL = "https://mpnybsxtwcbllrxouodw.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRefiI6Im1wbnlic3h0d2NibGxyeG91b2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NTk4NjksImV4cCI6MjA5OTMzNTg2OX0.un6Yd4hbepBWIJ9rOmLKmxvzuDlqA910h38D8PH6SMY";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wbnlic3h0d2NibGxyeG91b2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NTk4NjksImV4cCI6MjA5OTMzNTg2OX0.un6Yd4hbepBWIJ9rOmLKmxvzuDlqA910h38D8PH6SMY";
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const messages = document.getElementById("messages");
 let canSend = true;
+const loadedMsgIds = new Set();
 
 const usernameInput = document.getElementById("username");
 usernameInput.value = localStorage.getItem("chatName") || "";
@@ -1908,7 +1853,10 @@ document.getElementById("chatInput").addEventListener("keydown", e => {
   if (e.key === "Enter") sendMessage();
 });
 
-function addMessage(user, text) {
+function addMessage(user, text, id = null, createdAt = null) {
+    if (id && loadedMsgIds.has(id)) return;
+    if (id) loadedMsgIds.add(id);
+
     const bubble = document.createElement("div");
     bubble.className = "chatBubble";
 
@@ -1927,7 +1875,7 @@ function addMessage(user, text) {
         const time = document.createElement("div");
         time.className = "chatTime";
 
-        const now = new Date();
+        const now = createdAt ? new Date(createdAt) : new Date();
         time.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
         bubble.appendChild(header);
@@ -1949,30 +1897,36 @@ async function sendMessage(){
     canSend = false;
     const sendButton = document.getElementById("sendButton");
     sendButton.disabled = true;
-    sendButton.style.background = "#666";
-    sendButton.style.cursor = "not-allowed";
+
+    document.getElementById("chatInput").value = "";
+
+    const { data, error } = await client.from("messages").insert([{ username: username, message: text }]).select();
+
+    if (error) {
+        addMessage("🟢 SYSTEM", "Failed to send message: " + error.message);
+    } else if (data && data.length > 0) {
+        addMessage(data[0].username, data[0].message, data[0].id, data[0].created_at);
+    }
 
     setTimeout(() => {
         canSend = true;
         sendButton.disabled = false;
-        sendButton.style.background = "#28a745";
-        sendButton.style.cursor = "pointer";
     }, 1000);
-
-    await client.from("messages").insert({ username: username, message: text });
-    document.getElementById("chatInput").value = "";
 }
 
 async function loadMessages(){
-  let {data}=await client.from("messages").select("*").order("created_at").limit(50);
-  data.forEach(m=>{ addMessage(m.username, m.message); });
+  let { data, error } = await client.from("messages").select("*").order("created_at", { ascending: true }).limit(50);
+  if (data) {
+    data.forEach(m => { addMessage(m.username, m.message, m.id, m.created_at); });
+  }
 }
 
-client.channel("chat-room").on("postgres_changes", { event:"INSERT", schema:"public", table:"messages" }, payload=>{
-  addMessage(payload.new.username, payload.new.message);
+client.channel("chat-room").on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
+  addMessage(payload.new.username, payload.new.message, payload.new.id, payload.new.created_at);
 }).subscribe();
 
 loadMessages();
+
 const presenceChannel = client.channel("online-users");
 
 presenceChannel.on("presence", { event: "sync" }, () => {
