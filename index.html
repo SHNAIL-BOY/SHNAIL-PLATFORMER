@@ -84,7 +84,7 @@ position:fixed;
 right:15px;
 bottom:15px;
 width:320px;
-height:400px;
+height:420px;
 display:flex;
 flex-direction:column;
 background:#111;
@@ -122,6 +122,29 @@ border-radius:4px;
 background:#555;
 }
 
+#chatTabs {
+display:flex;
+background:#181818;
+border-bottom:1px solid #333;
+}
+
+.chatTab {
+flex:1;
+padding:6px;
+background:#222;
+color:#aaa;
+border:none;
+cursor:pointer;
+font-family:monospace;
+font-size:12px;
+}
+
+.chatTab.active {
+background:#28a745;
+color:white;
+font-weight:bold;
+}
+
 #onlineCount{
 font-size:12px;
 color:#8cff8c;
@@ -150,8 +173,25 @@ padding:8px;
 background:#1d1d1d;
 }
 
+#dmControls {
+display:flex;
+gap:4px;
+margin-bottom:5px;
+}
+
+#dmSelect, #dmTarget {
+flex:1;
+padding:4px;
+background:#222;
+border:1px solid #555;
+color:white;
+font-family:monospace;
+font-size:11px;
+}
+
 #username,
-#chatInput{
+#chatInput,
+.authInput {
 width:100%;
 margin-bottom:5px;
 padding:6px;
@@ -162,7 +202,7 @@ font-family:monospace;
 box-sizing:border-box;
 }
 
-#chatBottom button{
+#chatBottom button, .authBtn {
 width:100%;
 padding:6px;
 background:#28a745;
@@ -170,10 +210,20 @@ border:none;
 color:white;
 cursor:pointer;
 font-family:monospace;
+margin-bottom: 5px;
 }
 
-#chatBottom button:hover{
+#chatBottom button:hover, .authBtn:hover {
 background:#38c756;
+}
+
+#authOverlay {
+display:flex;
+flex-direction:column;
+padding:15px;
+background:#181818;
+flex:1;
+justify-content:center;
 }
 
 .chatBubble{
@@ -209,6 +259,15 @@ background:#38c756;
     border-left:4px solid lime;
     color:#9cff9c;
     font-style:italic;
+}
+
+.dmBubble{
+    background:#2b1a38;
+    border-left:4px solid #b84cff;
+}
+
+.dmHeader{
+    color:#e29eff;
 }
 
 @keyframes popup{
@@ -314,12 +373,33 @@ background:#4CAF50;
     <span>SHNAIL CHAT</span>
     <div>
       <span id="onlineCount">🟢 0 Online</span>
+      <button id="logoutBtn" onclick="handleLogout()" style="display:none;">🚪</button>
       <button id="minimizeBtn">➖</button>
     </div>
   </div>
+  <div id="chatTabs" style="display:none;">
+    <button class="chatTab active" id="tabGlobal" onclick="switchTab('global')">Global</button>
+    <button class="chatTab" id="tabDM" onclick="switchTab('dm')">Direct Messages</button>
+  </div>
   <div id="resizeHandle"></div>
-  <div id="messages"></div>
-  <div id="chatBottom">
+  
+  <div id="authOverlay">
+    <span style="color:#7CFF7C; text-align:center; font-weight:bold; margin-bottom:10px;">LOGIN TO CHAT</span>
+    <input id="authEmail" class="authInput" type="email" placeholder="Email">
+    <input id="authPassword" class="authInput" type="password" placeholder="Password">
+    <button class="authBtn" onclick="handleLogin()">Log In</button>
+    <button class="authBtn" onclick="handleSignUp()" style="background:#007bff;">Sign Up</button>
+    <span id="authError" style="color:#ff6666; font-size:10px; margin-top:5px; text-align:center;"></span>
+  </div>
+
+  <div id="messages" style="display:none;"></div>
+  <div id="chatBottom" style="display:none;">
+    <div id="dmControls" style="display:none;">
+      <select id="dmSelect" onchange="syncDmTarget(this.value)">
+        <option value="">Select Online User...</option>
+      </select>
+      <input id="dmTarget" placeholder="Or type username..." oninput="syncDmSelect(this.value)">
+    </div>
     <input id="username" placeholder="Name">
     <input id="chatInput" placeholder="Type a message...">
     <button id="sendButton" onclick="sendMessage()">➜</button>
@@ -348,9 +428,9 @@ background:#4CAF50;
 <div id="powerupHud">
   <div id="shieldHud" style="display:none; color:#00ffff;">🛡️ Shield: <span id="shieldHitsText">0</span></div>
   <div id="freezeHud" style="display:none; color:#a64dff;">❄️ Freeze: <span id="freezeTimeText">0</span>s</div>
-  <div id="droneHud" style="display:none; color:#00ff88;">🤖 Drone: <span id="droneTimeText">0</span>s</div>
-  <div id="ghostHud" style="display:none; color:#e0e0e0;">👻 Ghost: <span id="ghostTimeText">0</span>s</div>
-  <div id="angelHud" style="display:none; color:#fff700;">👼 Wings: <span id="angelTimeText">0</span>s</div>
+  <div id="droneHud" style="display:none; color:#00ff88;">🛸 Drone: <span id="droneTimeText">0</span>s</div>
+  <div id="ghostHud" style="display:none; color:#e0e0e0;">𓁹 Ghost: <span id="ghostTimeText">0</span>s</div>
+  <div id="angelHud" style="display:none; color:#fff700;">🪽 Angels Wings: <span id="angelTimeText">0</span>s</div>
 </div>
 
 <div id="controlsBox">
@@ -594,6 +674,7 @@ function fireBullets(p = player){
 }
 
 document.addEventListener("keydown",e=>{
+  if(e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
   keys[e.code]=true;
   if(e.code === "Escape"){
     paused = !paused;
@@ -644,7 +725,10 @@ document.addEventListener("keydown",e=>{
     }
 });
 
-document.addEventListener("keyup",e=>keys[e.code]=false);
+document.addEventListener("keyup",e=>{
+  if(e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  keys[e.code]=false;
+});
 
 let prevButtons = [];
 function handleGamepad(){
@@ -1227,7 +1311,7 @@ function update(timestamp){
       } else {
         addShake(10);
         flash = 10;
-        spawnParticles(player2.x,player2.y,"pink");
+        spawnParticles(player2.x, player2.y, "pink");
         respawn(player2);
       }
     }
@@ -1557,12 +1641,12 @@ function draw(){
         ctx.fillStyle = "#00ff88";
         ctx.fillRect(p.x, p.y, 16, 16);
         ctx.fillStyle = "black";
-        ctx.fillText("🤖", p.x, p.y+13);
+        ctx.fillText("", p.x, p.y+13);
       } else if(p.type === "ghost"){
         ctx.fillStyle = "#e0e0e0";
         ctx.fillRect(p.x, p.y, 16, 16);
         ctx.fillStyle = "black";
-        ctx.fillText("👻", p.x, p.y+13);
+        ctx.fillText("𓁹", p.x, p.y+13);
       } else if(p.type === "nuke"){
         ctx.fillStyle = "#ff3333";
         ctx.fillRect(p.x, p.y, 16, 16);
@@ -1840,25 +1924,163 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const messages = document.getElementById("messages");
-let canSend = true;
-const loadedMsgIds = new Set();
-
+const authOverlay = document.getElementById("authOverlay");
+const chatBottom = document.getElementById("chatBottom");
+const chatTabs = document.getElementById("chatTabs");
+const authError = document.getElementById("authError");
+const logoutBtn = document.getElementById("logoutBtn");
 const usernameInput = document.getElementById("username");
-usernameInput.value = localStorage.getItem("chatName") || "";
-usernameInput.addEventListener("input", () => {
-  localStorage.setItem("chatName", usernameInput.value);
-});
+const dmControls = document.getElementById("dmControls");
+const dmSelect = document.getElementById("dmSelect");
+const dmTarget = document.getElementById("dmTarget");
+
+let currentUser = null;
+let canSend = true;
+let currentTab = "global";
+const loadedMsgIds = new Set();
+let cachedMessages = [];
+
+usernameInput.disabled = true;
 
 document.getElementById("chatInput").addEventListener("keydown", e => {
   if (e.key === "Enter") sendMessage();
 });
 
-function addMessage(user, text, id = null, createdAt = null) {
-    if (id && loadedMsgIds.has(id)) return;
-    if (id) loadedMsgIds.add(id);
+client.auth.onAuthStateChange(async (event, session) => {
+  if (session && session.user) {
+    currentUser = session.user;
 
+    let existingName = currentUser.user_metadata?.username;
+
+    if (!existingName) {
+      existingName = prompt("Welcome! Please choose a permanent username:");
+      
+      while (!existingName || !existingName.trim()) {
+        existingName = prompt("Username cannot be empty. Please choose a username:");
+      }
+      
+      existingName = existingName.trim();
+
+      const { error } = await client.auth.updateUser({
+        data: { username: existingName }
+      });
+
+      if (error) {
+        console.error("Error saving username:", error.message);
+      }
+    }
+
+    usernameInput.value = existingName;
+    localStorage.setItem("chatName", existingName);
+    showChatUI();
+  } else {
+    currentUser = null;
+    showAuthUI();
+  }
+});
+
+async function handleSignUp() {
+  authError.textContent = "";
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value.trim();
+  if(!email || !password) {
+    authError.textContent = "Please enter email & password";
+    return;
+  }
+  const { data, error } = await client.auth.signUp({ email, password });
+  if (error) {
+    authError.textContent = error.message;
+  } else {
+    authError.style.color = "#7CFF7C";
+    authError.textContent = "Sign up successful!";
+  }
+}
+
+async function handleLogin() {
+  authError.style.color = "#ff6666";
+  authError.textContent = "";
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value.trim();
+  if(!email || !password) {
+    authError.textContent = "Please enter email & password";
+    return;
+  }
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) {
+    authError.textContent = error.message;
+  }
+}
+
+async function handleLogout() {
+  await client.auth.signOut();
+}
+
+function showChatUI() {
+  authOverlay.style.display = "none";
+  chatTabs.style.display = "flex";
+  messages.style.display = "block";
+  chatBottom.style.display = "block";
+  logoutBtn.style.display = "inline-block";
+
+  usernameInput.disabled = true;
+
+  loadMessages();
+  setupPresence();
+}
+
+function showAuthUI() {
+  authOverlay.style.display = "flex";
+  chatTabs.style.display = "none";
+  messages.style.display = "none";
+  chatBottom.style.display = "none";
+  logoutBtn.style.display = "none";
+  document.getElementById("onlineCount").textContent = "🟢 0 Online";
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("tabGlobal").className = "chatTab" + (tab === "global" ? " active" : "");
+  document.getElementById("tabDM").className = "chatTab" + (tab === "dm" ? " active" : "");
+  dmControls.style.display = tab === "dm" ? "flex" : "none";
+  renderMessages();
+}
+
+function syncDmTarget(val) {
+  dmTarget.value = val;
+}
+
+function syncDmSelect(val) {
+  dmSelect.value = val;
+}
+
+function renderMessages() {
+  messages.innerHTML = "";
+  const currentUsername = usernameInput.value.trim();
+
+  cachedMessages.forEach(m => {
+    const isDM = !!m.target_user;
+    
+    if (currentTab === "global") {
+      if (!isDM) {
+        appendMessageElement(m.username, m.message, m.created_at, null);
+      }
+    } else if (currentTab === "dm") {
+      if (isDM && (m.username === currentUsername || m.target_user === currentUsername)) {
+        appendMessageElement(m.username, m.message, m.created_at, m.target_user);
+      }
+    }
+  });
+
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function appendMessageElement(user, text, createdAt = null, targetUser = null) {
     const bubble = document.createElement("div");
     bubble.className = "chatBubble";
+
+    if (targetUser) {
+        bubble.classList.add("dmBubble");
+    }
 
     if (user === "🟢 SYSTEM") {
         bubble.classList.add("systemBubble");
@@ -1866,7 +2088,18 @@ function addMessage(user, text, id = null, createdAt = null) {
     } else {
         const header = document.createElement("div");
         header.className = "chatHeader";
-        header.textContent = user;
+        if (targetUser) header.classList.add("dmHeader");
+
+        let displayUser = user;
+        if (user === "Shnailboy") {
+            displayUser += " 👑";
+        }
+
+        if (targetUser) {
+            header.textContent = `🔒 Direct Message (${displayUser} ➔ ${targetUser}):`;
+        } else {
+            header.textContent = displayUser;
+        }
 
         const message = document.createElement("div");
         message.className = "chatText";
@@ -1884,15 +2117,54 @@ function addMessage(user, text, id = null, createdAt = null) {
     }
 
     messages.appendChild(bubble);
-    messages.scrollTop = messages.scrollHeight;
+}
+
+function addMessage(user, text, id = null, createdAt = null, targetUser = null) {
+    if (id && loadedMsgIds.has(id)) return;
+    if (id) loadedMsgIds.add(id);
+
+    cachedMessages.push({ username: user, message: text, id, created_at: createdAt, target_user: targetUser });
+    
+    const currentUsername = usernameInput.value.trim();
+    const isDM = !!targetUser;
+
+    if (currentTab === "global" && !isDM) {
+        appendMessageElement(user, text, createdAt, null);
+        messages.scrollTop = messages.scrollHeight;
+    } else if (currentTab === "dm" && isDM && (user === currentUsername || targetUser === currentUsername)) {
+        appendMessageElement(user, text, createdAt, targetUser);
+        messages.scrollTop = messages.scrollHeight;
+    }
 }
 
 async function sendMessage(){
-    let username = document.getElementById("username").value.trim();
+    if(!currentUser) return;
+    let username = usernameInput.value.trim();
     let text = document.getElementById("chatInput").value.trim();
 
     if(username === "" || text === "") return;
     if(!canSend) return;
+
+    let targetUser = null;
+
+    if (currentTab === "dm") {
+        targetUser = dmTarget.value.trim() || dmSelect.value;
+        if (!targetUser) {
+            appendMessageElement("🟢 SYSTEM", "Please select or type a recipient username to DM.");
+            messages.scrollTop = messages.scrollHeight;
+            return;
+        }
+    } else if (text.startsWith("/dm ")) {
+        const parts = text.split(" ");
+        if (parts.length >= 3) {
+            targetUser = parts[1];
+            text = parts.slice(2).join(" ");
+        } else {
+            appendMessageElement("🟢 SYSTEM", "Invalid DM format. Use: /dm username message");
+            messages.scrollTop = messages.scrollHeight;
+            return;
+        }
+    }
 
     canSend = false;
     const sendButton = document.getElementById("sendButton");
@@ -1900,12 +2172,18 @@ async function sendMessage(){
 
     document.getElementById("chatInput").value = "";
 
-    const { data, error } = await client.from("messages").insert([{ username: username, message: text }]).select();
+    const payload = { username: username, message: text };
+    if (targetUser) {
+        payload.target_user = targetUser;
+    }
+
+    const { data, error } = await client.from("messages").insert([payload]).select();
 
     if (error) {
-        addMessage("🟢 SYSTEM", "Failed to send message: " + error.message);
+        appendMessageElement("🟢 SYSTEM", "Failed to send message: " + error.message);
+        messages.scrollTop = messages.scrollHeight;
     } else if (data && data.length > 0) {
-        addMessage(data[0].username, data[0].message, data[0].id, data[0].created_at);
+        addMessage(data[0].username, data[0].message, data[0].id, data[0].created_at, data[0].target_user);
     }
 
     setTimeout(() => {
@@ -1917,47 +2195,73 @@ async function sendMessage(){
 async function loadMessages(){
   let { data, error } = await client.from("messages").select("*").order("created_at", { ascending: true }).limit(50);
   if (data) {
-    data.forEach(m => { addMessage(m.username, m.message, m.id, m.created_at); });
+    cachedMessages = [];
+    loadedMsgIds.clear();
+    data.forEach(m => { addMessage(m.username, m.message, m.id, m.created_at, m.target_user); });
   }
 }
 
 client.channel("chat-room").on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
-  addMessage(payload.new.username, payload.new.message, payload.new.id, payload.new.created_at);
+  addMessage(payload.new.username, payload.new.message, payload.new.id, payload.new.created_at, payload.new.target_user);
 }).subscribe();
 
-loadMessages();
+let presenceChannel;
+function setupPresence() {
+  if (presenceChannel) presenceChannel.unsubscribe();
+  presenceChannel = client.channel("online-users");
+  presenceChannel.on("presence", { event: "sync" }, () => {
+    const state = presenceChannel.presenceState();
+    const onlineUsernames = [];
+    
+    Object.values(state).forEach(presences => {
+      presences.forEach(p => {
+        if (p.username && p.username !== usernameInput.value) {
+          onlineUsernames.push(p.username);
+        }
+      });
+    });
 
-const presenceChannel = client.channel("online-users");
+    document.getElementById("onlineCount").textContent = "🟢 " + Object.keys(state).length + " Online";
 
-presenceChannel.on("presence", { event: "sync" }, () => {
-  const state = presenceChannel.presenceState();
-  document.getElementById("onlineCount").textContent = "🟢 " + Object.keys(state).length + " Online";
-}).subscribe(async (status) => {
-  if (status === "SUBSCRIBED") {
-    await presenceChannel.track({ username: document.getElementById("username").value || "Guest" });
-  }
-});
+    dmSelect.innerHTML = '<option value="">Select Online User...</option>';
+    onlineUsernames.forEach(uname => {
+      const opt = document.createElement("option");
+      opt.value = uname;
+      opt.textContent = uname;
+      dmSelect.appendChild(opt);
+    });
+  }).subscribe(async (status) => {
+    if (status === "SUBSCRIBED" && currentUser) {
+      await presenceChannel.track({ username: usernameInput.value || currentUser.email });
+    }
+  });
+}
 
 const minimizeBtn = document.getElementById("minimizeBtn");
 let minimized = false;
 
 minimizeBtn.onclick = () => {
     minimized = !minimized;
-    const messages = document.getElementById("messages");
-    const bottom = document.getElementById("chatBottom");
     const handle = document.getElementById("resizeHandle");
 
     if(minimized){
+        authOverlay.style.display = "none";
+        chatTabs.style.display = "none";
         messages.style.display = "none";
-        bottom.style.display = "none";
+        chatBottom.style.display = "none";
         handle.style.display = "none";
         chatBox.style.height = "45px";
         minimizeBtn.textContent = "➕";
     } else {
-        messages.style.display = "";
-        bottom.style.display = "";
+        if (currentUser) {
+            chatTabs.style.display = "flex";
+            messages.style.display = "";
+            chatBottom.style.display = "";
+        } else {
+            authOverlay.style.display = "flex";
+        }
         handle.style.display = "";
-        chatBox.style.height = "400px";
+        chatBox.style.height = "420px";
         minimizeBtn.textContent = "➖";
     }
 };
