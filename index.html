@@ -539,7 +539,7 @@ background:#4CAF50;
 <div id="mainMenu">
   <h1>SHNAIL PLATFORMER</h1>
   <div id="menuAccount" style="font-size:10px;color:#8cff8c;margin-bottom:10px;">Not signed in · chat, friends &amp; leaderboard need login</div>
-  <button id="startButton" onclick="startGame()">START GAME (SOLO)</button><br>
+  <button id="startButton" onclick="startGame()">START GAME</button><br>
   <button id="multiplayerButton" onclick="openRoomPanel()">🌐 MULTIPLAYER</button>
   <button id="leaderboardButton" onclick="openLeaderboard()">🏆 LEADERBOARD</button><br>
   <button id="easyModeButton" onclick="toggleEasyMode()">EASY MODE: OFF</button>
@@ -725,12 +725,36 @@ function toggleTwoPlayerMode(){
 
 let gameLoopStarted = false;
 
+function showGameHud(){
+  const hud = document.getElementById("hud");
+  const power = document.getElementById("powerupHud");
+  if(hud) hud.style.display = "block";
+  if(power) power.style.display = "block";
+}
+
+function hideGameHud(){
+  const hud = document.getElementById("hud");
+  const power = document.getElementById("powerupHud");
+  if(hud) hud.style.display = "none";
+  if(power) power.style.display = "none";
+  const controls = document.getElementById("controlsBox");
+  if(controls) controls.style.display = "none";
+}
+
+/* Clear the finished run off the canvas and show a neutral menu
+   backdrop instead of the last frame of the game. */
+function renderMenuBackdrop(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  canvas.style.background = "radial-gradient(circle at 50% 20%, #173a1c 0%, #0b1a0d 55%, #050b06 100%)";
+}
+
 function startGame(){
   audioCtx.resume();
   menu.style.display="none";
   inMainMenu = false;
   paused = false;
   hidePauseMenu();
+  showGameHud();
   /* Solo runs get a fresh random map each start; shared rooms keep
      the seed derived from their room code. */
   if(!(window.MP && window.MP.active)) setMapSeed((Math.random() * 4294967296) >>> 0);
@@ -779,8 +803,14 @@ function returnToMainMenu(){
   gameLoopStarted = false;
   hidePauseMenu();
   menu.style.display = "block";
+  hideGameHud();
+  renderMenuBackdrop();
   if(typeof updateMenuStatus === "function") updateMenuStatus();
 }
+
+/* Start on a clean menu screen rather than showing an empty HUD. */
+hideGameHud();
+renderMenuBackdrop();
 
 const gravity = 0.5;
 
@@ -2229,6 +2259,8 @@ let currentTab = "global";
 const loadedMsgIds = new Set();
 let cachedMessages = [];
 let onlineUsers = new Map();
+let bulkLoading = false;
+let messagesLoadedFor = null;
 
 usernameInput.disabled = true;
 
@@ -2337,6 +2369,12 @@ function showAuthUI() {
   document.getElementById("onlineCount").textContent = "🟢 0 Online";
   onlineUsers.clear();
 
+  /* Forget the loaded history so the next sign-in rebuilds it cleanly. */
+  messagesLoadedFor = null;
+  cachedMessages = [];
+  loadedMsgIds.clear();
+  messages.innerHTML = "";
+
   const accountLine = document.getElementById("menuAccount");
   if(accountLine) accountLine.textContent = "Not signed in · chat, friends & leaderboard need login";
 }
@@ -2373,8 +2411,16 @@ function syncDmSelect(val) {
 function renderMessages() {
   messages.innerHTML = "";
   const currentUsername = usernameInput.value.trim();
+  const seen = new Set();
 
   cachedMessages.forEach(m => {
+    /* Defensive de-dupe: the same message id must never render twice,
+       even if history reload and realtime both delivered it. */
+    if(m.id){
+      if(seen.has(m.id)) return;
+      seen.add(m.id);
+    }
+
     const isDM = !!m.target_user;
     
     if (currentTab === "global") {
@@ -2455,6 +2501,10 @@ function addMessage(user, text, id = null, createdAt = null, targetUser = null) 
     if (id) loadedMsgIds.add(id);
 
     cachedMessages.push({ username: user, message: text, id, created_at: createdAt, target_user: targetUser });
+    if(cachedMessages.length > 500) cachedMessages.splice(0, cachedMessages.length - 500);
+
+    /* During a history rebuild the whole list is rendered once at the end. */
+    if(bulkLoading) return;
     
     const currentUsername = usernameInput.value.trim();
     const isDM = !!targetUser;
@@ -2523,13 +2573,34 @@ async function sendMessage(){
     }, 1000);
 }
 
-async function loadMessages(){
-  let { data, error } = await client.from("messages").select("*").order("created_at", { ascending: true }).limit(50);
-  if (data) {
-    cachedMessages = [];
-    loadedMsgIds.clear();
-    data.forEach(m => { addMessage(m.username, m.message, m.id, m.created_at, m.target_user); });
+async function loadMessages(force = false){
+  if(!currentUser) return;
+
+  /* Auth refresh events fire repeatedly on tab focus. Reloading the
+     history every time was what duplicated the visible chat log. */
+  if(!force && messagesLoadedFor === currentUser.id) return;
+  messagesLoadedFor = currentUser.id;
+
+  const { data, error } = await client.from("messages")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if(error){
+    console.warn("Could not load chat history:", error.message);
+    messagesLoadedFor = null; /* allow a retry on the next auth event */
+    return;
   }
+
+  /* Rebuild once from scratch instead of appending onto what is there. */
+  cachedMessages = [];
+  loadedMsgIds.clear();
+  bulkLoading = true;
+  (data || []).slice().reverse().forEach(m => {
+    addMessage(m.username, m.message, m.id, m.created_at, m.target_user);
+  });
+  bulkLoading = false;
+  renderMessages();
 }
 
 client.channel("chat-room").on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
