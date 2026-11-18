@@ -459,6 +459,26 @@ background:#4CAF50;
   font-family:monospace; font-size:11px; padding:5px 8px; border-radius:6px; cursor:pointer;
 }
 .chatInvite:hover{ background:#2b5733; }
+
+#pauseMenu{
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.45); z-index:940; font-family:monospace;
+}
+#pauseMenu.open{ display:flex; }
+.pauseCard{
+  background:#111; border:2px solid #2ed84b; border-radius:12px; padding:22px 26px;
+  text-align:center; min-width:260px; box-shadow:0 0 30px rgba(46,216,75,.3);
+}
+.pauseCard h2{ color:#7CFF7C; margin:0 0 16px; letter-spacing:2px; font-size:20px; }
+.pauseCard button{
+  display:block; width:100%; margin-bottom:9px; padding:10px; cursor:pointer;
+  font-family:monospace; font-size:14px; border-radius:8px; border:none; color:white;
+}
+#resumeButton{ background:#28a745; }
+#resumeButton:hover{ background:#38c756; }
+#pauseMainMenuButton{ background:#2c2c2c; border:1px solid #444; }
+#pauseMainMenuButton:hover{ background:#3d3d3d; }
+.pauseHint{ font-size:10px; color:#9cff9c; opacity:.6; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -519,7 +539,7 @@ background:#4CAF50;
 <div id="mainMenu">
   <h1>SHNAIL PLATFORMER</h1>
   <div id="menuAccount" style="font-size:10px;color:#8cff8c;margin-bottom:10px;">Not signed in · chat, friends &amp; leaderboard need login</div>
-  <button id="startButton" onclick="startGame()">START GAME</button><br>
+  <button id="startButton" onclick="startGame()">START GAME (SOLO)</button><br>
   <button id="multiplayerButton" onclick="openRoomPanel()">🌐 MULTIPLAYER</button>
   <button id="leaderboardButton" onclick="openLeaderboard()">🏆 LEADERBOARD</button><br>
   <button id="easyModeButton" onclick="toggleEasyMode()">EASY MODE: OFF</button>
@@ -530,6 +550,15 @@ background:#4CAF50;
 <div id="roomHud"></div>
 <div id="mpFeed"></div>
 
+<div id="pauseMenu">
+  <div class="pauseCard">
+    <h2>⏸ PAUSED</h2>
+    <button id="resumeButton" onclick="resumeGame()">▶ RESUME</button>
+    <button id="pauseMainMenuButton" onclick="returnToMainMenu()">🏠 MAIN MENU</button>
+    <div class="pauseHint">ESC to resume</div>
+  </div>
+</div>
+
 <div id="roomPanel" class="overlayPanel">
   <div class="overlayCard">
     <h2><span>🌐 MULTIPLAYER</span><button class="xBtn" onclick="closeRoomPanel()">✕</button></h2>
@@ -538,10 +567,10 @@ background:#4CAF50;
       <div style="font-size:10px;opacity:.7;margin-top:4px;">Everyone in this room plays the exact same map seed.</div>
       <div class="rowFlex" style="margin-top:8px;">
         <button class="gbtn" onclick="copyRoomLink()">📋 Copy Invite Link</button>
-        <button class="gbtn ghost" onclick="leaveRoom(true)">Leave Room</button>
+        <button class="gbtn ghost" onclick="returnToMainMenu()">Leave Room</button>
       </div>
     </div>
-    <h3>PUBLIC ROOMS</h3>
+    <h3>PUBLIC ROOMS · SAME MAP FOR EVERYONE</h3>
     <div id="publicRoomList"></div>
     <h3>PRIVATE ROOM</h3>
     <div class="rowFlex" style="margin-bottom:8px;">
@@ -604,6 +633,7 @@ Restart: R | Pause: ESC | Toggle Menu: I<br>
 
 <script>
 let paused = false;
+let inMainMenu = false;
 let easyMode = false;
 let twoPlayerMode = false;
 
@@ -698,7 +728,9 @@ let gameLoopStarted = false;
 function startGame(){
   audioCtx.resume();
   menu.style.display="none";
+  inMainMenu = false;
   paused = false;
+  hidePauseMenu();
   /* Solo runs get a fresh random map each start; shared rooms keep
      the seed derived from their room code. */
   if(!(window.MP && window.MP.active)) setMapSeed((Math.random() * 4294967296) >>> 0);
@@ -710,6 +742,44 @@ function startGame(){
     gameLoopStarted = true;
     update(lastTime);
   }
+}
+
+/* ---------------- pause menu ---------------- */
+function showPauseMenu(){
+  const el = document.getElementById("pauseMenu");
+  if(el) el.classList.add("open");
+}
+
+function hidePauseMenu(){
+  const el = document.getElementById("pauseMenu");
+  if(el) el.classList.remove("open");
+}
+
+function setPaused(value){
+  paused = !!value;
+  if(paused) showPauseMenu();
+  else hidePauseMenu();
+}
+
+function resumeGame(){
+  setPaused(false);
+}
+
+function returnToMainMenu(){
+  /* Leaving through the pause menu ends the current run:
+     submit the score and step out of any multiplayer room. */
+  if(window.MP && window.MP.active && typeof leaveRoom === "function"){
+    leaveRoom(false);
+  } else if(typeof maybeSubmitScore === "function"){
+    maybeSubmitScore(true);
+  }
+
+  paused = false;
+  inMainMenu = true;
+  gameLoopStarted = false;
+  hidePauseMenu();
+  menu.style.display = "block";
+  if(typeof updateMenuStatus === "function") updateMenuStatus();
 }
 
 const gravity = 0.5;
@@ -890,9 +960,10 @@ function fireBullets(p = player){
 
 document.addEventListener("keydown",e=>{
   if(e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  if(inMainMenu) return;
   keys[e.code]=true;
   if(e.code === "Escape"){
-    paused = !paused;
+    setPaused(!paused);
   }
   if(e.code==="KeyR"){
     if(!(window.MP && window.MP.active)) setMapSeed((Math.random() * 4294967296) >>> 0);
@@ -1166,6 +1237,10 @@ function rect(a,b){
 }
 
 function update(timestamp){
+  /* The loop is fully stopped while the main menu is showing; it
+     restarts the next time startGame() is called. */
+  if(inMainMenu) return;
+
   if(paused){
     drawPauseScreen();
     lastTime = timestamp;
@@ -2117,13 +2192,7 @@ function drawPauseScreen(){
   draw();
   ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  ctx.fillStyle = "lightgreen";
-  ctx.font = "30px monospace";
-  ctx.fillText("PAUSED", canvas.width/2 - 70, canvas.height/2);
-
-  ctx.font = "14px monospace";
-  ctx.fillText("Press ESC to resume", canvas.width/2 - 100, canvas.height/2 + 30);
+  /* The resume / main-menu buttons are DOM elements in #pauseMenu. */
 }
 </script>
 
@@ -2912,7 +2981,10 @@ function leaveRoom(showMenu = false){
   setMapSeed((Math.random() * 4294967296) >>> 0);
 
   if(showMenu){
-    paused = true;
+    inMainMenu = true;
+    gameLoopStarted = false;
+    paused = false;
+    if(typeof hidePauseMenu === "function") hidePauseMenu();
     menu.style.display = "block";
     mpToast("Left the room");
   }
