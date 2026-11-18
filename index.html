@@ -358,6 +358,107 @@ background:#4CAF50;
 .hudRow{ margin-bottom:5px; font-size:10px; }
 .bar{ width:100%; height:6px; background:#333; margin-top:2px; }
 #ammoBar{ height:100%; width:100%; background:orange; }
+
+/* ===== Multiplayer / social additions ===== */
+#startButton, #easyModeButton, #twoPlayerButton, #multiplayerButton, #leaderboardButton{
+  min-width:220px;
+}
+#multiplayerButton, #leaderboardButton{
+  background:#1f6f31; color:white; border:none; padding:10px 25px; font-size:16px;
+  cursor:pointer; font-family:monospace; margin:5px;
+}
+#multiplayerButton:hover, #leaderboardButton:hover{ background:#2ed84b; }
+
+.overlayPanel{
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.78); z-index:1200; font-family:monospace; color:#e6ffe6;
+}
+.overlayPanel.open{ display:flex; }
+.overlayCard{
+  background:#111; border:2px solid #2ed84b; border-radius:12px; padding:18px;
+  width:min(540px, 92vw); max-height:86vh; overflow-y:auto;
+  box-shadow:0 0 30px rgba(46,216,75,.25);
+}
+.overlayCard h2{
+  margin:0 0 12px; color:#7CFF7C; font-size:17px; letter-spacing:1px;
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.overlayCard h3{ margin:16px 0 8px; color:#9cff9c; font-size:12px; letter-spacing:1px; }
+.xBtn{
+  background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;
+  cursor:pointer; font-family:monospace; padding:3px 9px; font-size:13px;
+}
+.xBtn:hover{ background:#444; }
+.gbtn{
+  background:#28a745; border:none; color:#fff; padding:7px 12px; cursor:pointer;
+  font-family:monospace; font-size:12px; border-radius:6px; white-space:nowrap;
+}
+.gbtn:hover{ background:#38c756; }
+.gbtn.ghost{ background:#2c2c2c; border:1px solid #444; }
+.gbtn.ghost:hover{ background:#3d3d3d; }
+.gbtn:disabled{ background:#555; cursor:not-allowed; opacity:.65; }
+.ginput{
+  width:100%; box-sizing:border-box; padding:8px; background:#1d1d1d; color:#fff;
+  border:1px solid #444; border-radius:6px; font-family:monospace; margin-bottom:8px;
+}
+.ginput:focus{ outline:1px solid #2ed84b; }
+.rowFlex{ display:flex; gap:8px; align-items:center; }
+.roomRow, .friendRow, .lbRow{
+  display:flex; justify-content:space-between; align-items:center; gap:8px;
+  background:#191919; border:1px solid #2e2e2e; border-radius:8px;
+  padding:9px 10px; margin-bottom:7px; font-size:12px;
+}
+.roomRow .meta, .friendRow .meta, .lbRow .meta{ opacity:.6; font-size:10px; }
+.lbRow .rank{ color:#ffd54f; font-weight:bold; width:30px; }
+.lbRow .lbName{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lbRow .lbScore{ color:#7CFF7C; font-weight:bold; }
+.lbRow.me{ border-color:#2ed84b; box-shadow:0 0 8px rgba(46,216,75,.25); }
+.pill{
+  display:inline-block; padding:1px 7px; border-radius:10px; font-size:10px;
+  border:1px solid #444; color:#bbb; margin-left:4px;
+}
+.pill.green{ border-color:#2ed84b; color:#7CFF7C; }
+.pill.amber{ border-color:#ffb300; color:#ffca28; }
+.pill.purple{ border-color:#b84cff; color:#d9a6ff; }
+#roomHud{
+  position:fixed; top:10px; left:50%; transform:translateX(-50%);
+  background:rgba(8,20,8,.82); border:1px solid #2ed84b; color:#8cff8c;
+  font-family:monospace; font-size:11px; padding:5px 12px; border-radius:8px;
+  z-index:900; display:none; text-align:center; line-height:1.4;
+  box-shadow:0 0 14px rgba(46,216,75,.25);
+}
+#roomHud b{ color:#d6ffd6; letter-spacing:1px; }
+#mpFeed{
+  position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  z-index:950; pointer-events:none; font-family:monospace;
+}
+.mpToast{
+  background:rgba(10,26,10,.9); border:1px solid #2ed84b; color:#b8ffb8;
+  font-size:11px; padding:4px 10px; border-radius:6px; animation:fadeOutToast 3s forwards;
+}
+@keyframes fadeOutToast{
+  0%{opacity:0; transform:translateY(6px);} 10%{opacity:1; transform:translateY(0);}
+  80%{opacity:1;} 100%{opacity:0;}
+}
+
+#tabFriends{ display:none; }
+#friendsPanel{
+  flex:1; min-height:0; overflow-y:auto; padding:8px; background:#181818;
+  color:#e6ffe6; font-family:monospace; font-size:12px;
+}
+#friendsPanel .ginput{ margin-bottom:6px; }
+#friendsPanel h4{ margin:8px 0 6px; color:#9cff9c; font-size:11px; letter-spacing:1px; }
+#friendsPanel .empty{ opacity:.5; font-size:11px; padding:6px 0; }
+.friendRow .name{ font-weight:bold; color:#7CFF7C; }
+.friendRow .actions{ display:flex; gap:5px; }
+.friendRow .actions .gbtn{ padding:4px 8px; font-size:10px; }
+
+.chatInvite{
+  margin-top:6px; background:#1d3a22; border:1px dashed #2ed84b; color:#b8ffb8;
+  font-family:monospace; font-size:11px; padding:5px 8px; border-radius:6px; cursor:pointer;
+}
+.chatInvite:hover{ background:#2b5733; }
 </style>
 </head>
 <body>
@@ -379,7 +480,8 @@ background:#4CAF50;
   </div>
   <div id="chatTabs" style="display:none;">
     <button class="chatTab active" id="tabGlobal" onclick="switchTab('global')">Global</button>
-    <button class="chatTab" id="tabDM" onclick="switchTab('dm')">Direct Messages</button>
+    <button class="chatTab" id="tabDM" onclick="switchTab('dm')">DMs</button>
+    <button class="chatTab" id="tabFriends" onclick="switchTab('friends')">Friends</button>
   </div>
   <div id="resizeHandle"></div>
   
@@ -393,6 +495,14 @@ background:#4CAF50;
   </div>
 
   <div id="messages" style="display:none;"></div>
+  <div id="friendsPanel" style="display:none;">
+    <input id="friendSearch" class="ginput" placeholder="Search username..." autocomplete="off">
+    <div id="friendSearchResults"></div>
+    <h4>FRIEND REQUESTS</h4>
+    <div id="friendRequests"><div class="empty">No pending requests.</div></div>
+    <h4>YOUR FRIENDS <span id="friendOnlineCount" class="pill green">0 online</span></h4>
+    <div id="friendList"><div class="empty">No friends yet — search for a player above.</div></div>
+  </div>
   <div id="chatBottom" style="display:none;">
     <div id="dmControls" style="display:none;">
       <select id="dmSelect" onchange="syncDmTarget(this.value)">
@@ -408,9 +518,60 @@ background:#4CAF50;
 
 <div id="mainMenu">
   <h1>SHNAIL PLATFORMER</h1>
+  <div id="menuAccount" style="font-size:10px;color:#8cff8c;margin-bottom:10px;">Not signed in · chat, friends &amp; leaderboard need login</div>
   <button id="startButton" onclick="startGame()">START GAME</button><br>
+  <button id="multiplayerButton" onclick="openRoomPanel()">🌐 MULTIPLAYER</button>
+  <button id="leaderboardButton" onclick="openLeaderboard()">🏆 LEADERBOARD</button><br>
   <button id="easyModeButton" onclick="toggleEasyMode()">EASY MODE: OFF</button>
   <button id="twoPlayerButton" onclick="toggleTwoPlayerMode()">2-PLAYER: OFF</button>
+  <div id="menuRoomStatus" style="font-size:11px;color:#ffd54f;margin-top:12px;display:none;"></div>
+</div>
+
+<div id="roomHud"></div>
+<div id="mpFeed"></div>
+
+<div id="roomPanel" class="overlayPanel">
+  <div class="overlayCard">
+    <h2><span>🌐 MULTIPLAYER</span><button class="xBtn" onclick="closeRoomPanel()">✕</button></h2>
+    <div id="currentRoomBox" style="display:none;background:#16240f;border:1px solid #2ed84b;border-radius:8px;padding:10px;margin-bottom:12px;">
+      <div style="font-size:12px;">In room <b id="currentRoomCode" style="color:#7CFF7C;letter-spacing:2px;"></b> <span id="currentRoomPrivacy" class="pill"></span></div>
+      <div style="font-size:10px;opacity:.7;margin-top:4px;">Everyone in this room plays the exact same map seed.</div>
+      <div class="rowFlex" style="margin-top:8px;">
+        <button class="gbtn" onclick="copyRoomLink()">📋 Copy Invite Link</button>
+        <button class="gbtn ghost" onclick="leaveRoom(true)">Leave Room</button>
+      </div>
+    </div>
+    <h3>PUBLIC ROOMS</h3>
+    <div id="publicRoomList"></div>
+    <h3>PRIVATE ROOM</h3>
+    <div class="rowFlex" style="margin-bottom:8px;">
+      <button class="gbtn" onclick="createPrivateRoom()">＋ Create Private Room</button>
+    </div>
+    <div class="rowFlex">
+      <input id="joinCodeInput" class="ginput" style="margin-bottom:0;text-transform:uppercase;" placeholder="Enter room code..." maxlength="12" autocomplete="off">
+      <button class="gbtn ghost" onclick="joinRoomFromInput()">Join</button>
+    </div>
+    <div id="roomError" style="color:#ff8080;font-size:10px;margin-top:8px;"></div>
+    <div style="font-size:10px;opacity:.55;margin-top:12px;line-height:1.5;">
+      Multiplayer is co-op ghost mode: all players share the same generated map and can see each other's runs.
+      Public room codes are listed above. Private rooms only joinable with the code/link.
+    </div>
+  </div>
+</div>
+
+<div id="leaderboardPanel" class="overlayPanel">
+  <div class="overlayCard">
+    <h2><span>🏆 LEADERBOARD</span><button class="xBtn" onclick="closeLeaderboard()">✕</button></h2>
+    <div id="lbTabs" class="rowFlex" style="margin-bottom:10px;">
+      <button class="gbtn ghost lbTab active" data-tab="global" onclick="switchLbTab('global')">Global</button>
+      <button class="gbtn ghost lbTab" data-tab="room" onclick="switchLbTab('room')">This Room</button>
+      <button class="gbtn ghost lbTab" data-tab="friends" onclick="switchLbTab('friends')">Friends</button>
+    </div>
+    <div id="lbBody"><div class="empty" style="opacity:.6;font-size:12px;">Loading...</div></div>
+    <div style="font-size:10px;opacity:.55;margin-top:10px;line-height:1.5;">
+      Scores are submitted automatically while signed in. Your best score per run counts.
+    </div>
+  </div>
 </div>
 
 <canvas id="game" width="800" height="400"></canvas>
@@ -446,6 +607,41 @@ let paused = false;
 let easyMode = false;
 let twoPlayerMode = false;
 
+/* =========================================================
+   DETERMINISTIC MAP GENERATION
+   Every random value used to build the level comes from this
+   seeded generator, so a given seed always produces the exact
+   same map for every player / every reload.
+   ========================================================= */
+const MAP_SALT = "shnail-map-v1:";
+
+function hashString(str){
+  let h = 2166136261 >>> 0;
+  for(let i = 0; i < str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function mulberry32(a){
+  return function(){
+    a |= 0;
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+let mapSeed = (Math.random() * 4294967296) >>> 0;
+let mapRng = mulberry32(mapSeed);
+
+function mapRandom(){ return mapRng(); }
+function setMapSeed(seed){ mapSeed = seed >>> 0; mapRng = mulberry32(mapSeed); }
+function seedFromRoom(code){ return hashString(MAP_SALT + String(code).toUpperCase()); }
+function randomRoomCode(){ return Math.random().toString(36).slice(2, 8).toUpperCase(); }
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const box = document.getElementById("controlsBox");
@@ -470,6 +666,10 @@ let lastTime = performance.now();
 let dt = 1;
 
 function toggleEasyMode(){
+  if(window.MP && window.MP.active){
+    mpToast("Easy mode is disabled in multiplayer so everyone gets the same map.");
+    return;
+  }
   easyMode = !easyMode;
   const btn = document.getElementById("easyModeButton");
   if(easyMode){
@@ -493,12 +693,23 @@ function toggleTwoPlayerMode(){
   }
 }
 
+let gameLoopStarted = false;
+
 function startGame(){
   audioCtx.resume();
   menu.style.display="none";
+  paused = false;
+  /* Solo runs get a fresh random map each start; shared rooms keep
+     the seed derived from their room code. */
+  if(!(window.MP && window.MP.active)) setMapSeed((Math.random() * 4294967296) >>> 0);
   resetWorld();
   lastTime = performance.now();
-  update(lastTime);
+  /* Only ever run one animation loop, no matter how often the
+     player re-enters the game from a room. */
+  if(!gameLoopStarted){
+    gameLoopStarted = true;
+    update(lastTime);
+  }
 }
 
 const gravity = 0.5;
@@ -619,11 +830,15 @@ let platforms,enemies,coins,bullets,checkpoints,ammoCrates,mushrooms,powerups,an
 let enemyBullets = [];
 
 function resetWorld(){
+  /* Rewind the deterministic generator so restarting in a room
+     rebuilds exactly the same map. */
+  mapRng = mulberry32(mapSeed);
+
   currentBiome = BIOMES[0];
   platformsGeneratedCount = 0;
-  platformsUntilBiomeChange = Math.floor(Math.random() * 51) + 50;
+  platformsUntilBiomeChange = Math.floor(mapRandom() * 51) + 50;
   fireTurretCounter = 0;
-  platformsUntilFireTurret = Math.floor(Math.random() * 6) + 5;
+  platformsUntilFireTurret = Math.floor(mapRandom() * 6) + 5;
   nextBiomeTargetX = 1000 + (platformsUntilBiomeChange * 130);
 
   platforms=[{x:0,y:350,w:1000,h:50, color: currentBiome.platform, isCloud: false}];
@@ -679,7 +894,10 @@ document.addEventListener("keydown",e=>{
   if(e.code === "Escape"){
     paused = !paused;
   }
-  if(e.code==="KeyR") resetWorld();
+  if(e.code==="KeyR"){
+    if(!(window.MP && window.MP.active)) setMapSeed((Math.random() * 4294967296) >>> 0);
+    resetWorld();
+  }
   if(e.code==="KeyI")
     box.style.display = box.style.display==="none"?"block":"none";
 
@@ -859,17 +1077,17 @@ function generateChunk(){
 
   for(let i=0;i<6;i++){
     let x = startX + i*130;
-    let y = 180 + Math.random()*170;
+    let y = 180 + mapRandom()*170;
 
     platformsGeneratedCount++;
     fireTurretCounter++;
 
     if(platformsGeneratedCount >= platformsUntilBiomeChange){
       platformsGeneratedCount = 0;
-      platformsUntilBiomeChange = Math.floor(Math.random() * 51) + 50;
+      platformsUntilBiomeChange = Math.floor(mapRandom() * 51) + 50;
       
       let nextBiomes = BIOMES.filter(b => b.name !== currentBiome.name);
-      currentBiome = nextBiomes[Math.floor(Math.random() * nextBiomes.length)];
+      currentBiome = nextBiomes[Math.floor(mapRandom() * nextBiomes.length)];
     }
 
     let isCloudPlat = currentBiome.isCloud;
@@ -890,25 +1108,25 @@ function generateChunk(){
     if(!easyMode && currentBiome.name === "Lava Core" && fireTurretCounter >= platformsUntilFireTurret){
       enemies.push({ x, y:y-20, w:20, h:20, dx:0, dy:0, type:"fire_turret", hp:4, shootTimer:80 });
       fireTurretCounter = 0;
-      platformsUntilFireTurret = Math.floor(Math.random() * 6) + 5;
+      platformsUntilFireTurret = Math.floor(mapRandom() * 6) + 5;
       spawnedFireTurret = true;
     }
 
-    if(!spawnedFireTurret && Math.random()<0.95){
-      let r = Math.random();
+    if(!spawnedFireTurret && mapRandom()<0.95){
+      let r = mapRandom();
 
       if(!easyMode && currentBiome.name === "Desert Ruins" && r < 0.35){
-        enemies.push({ x,y:y-24,w:22,h:24, dx:(Math.random()<0.5?-1:1)*0.4, dy:0, type:"mummy", hp:5 });
+        enemies.push({ x,y:y-24,w:22,h:24, dx:(mapRandom()<0.5?-1:1)*0.4, dy:0, type:"mummy", hp:5 });
       } else if(!easyMode && currentBiome.name === "Ice Cave" && r < 0.35){
-        enemies.push({ x, y: y-20, w: 22, h: 20, dx: (Math.random()<0.5?-1:1)*0.8, dy: 0, type: "frost_slime", hp: 3, trailTimer: 0 });
+        enemies.push({ x, y: y-20, w: 22, h: 20, dx: (mapRandom()<0.5?-1:1)*0.8, dy: 0, type: "frost_slime", hp: 3, trailTimer: 0 });
       } else if(r < 0.15 && !easyMode){
         enemies.push({ x,y:y-20,w:20,h:20, dx:0,dy:0, type:"turret", hp:3, shootTimer:60 });
       } else if(r < 0.35){
-        enemies.push({ x,y:y-18,w:24,h:18, dx:(Math.random()<0.5?-1:1)*0.6, dy:0, type:"shnail", hp:2 });
+        enemies.push({ x,y:y-18,w:24,h:18, dx:(mapRandom()<0.5?-1:1)*0.6, dy:0, type:"shnail", hp:2 });
       } else if(r < 0.50 && !easyMode){
-        enemies.push({ x, y: y - 50, w: 24, h: 18, dx: 0, dy: 0, type: "flying_shnail", hp: 2, hoverBaseY: y - 50, hoverAngle: Math.random() * Math.PI * 2, speed: 1.2 });
+        enemies.push({ x, y: y - 50, w: 24, h: 18, dx: 0, dy: 0, type: "flying_shnail", hp: 2, hoverBaseY: y - 50, hoverAngle: mapRandom() * Math.PI * 2, speed: 1.2 });
       } else if(r < 0.70){
-        enemies.push({ x,y:y-20,w:20,h:20, dx:(Math.random()<0.5?-1:1)*1.2, dy:0, type:"normal" });
+        enemies.push({ x,y:y-20,w:20,h:20, dx:(mapRandom()<0.5?-1:1)*1.2, dy:0, type:"normal" });
       } else if(r < 0.85){
         enemies.push({ x, y:y-20, w:24, h:18, dx:0, dy:0, type:"runner", hp:1, dashCooldown:80, dashing:false });
       } else if(!easyMode) {
@@ -916,17 +1134,17 @@ function generateChunk(){
       }
     }
 
-    if(Math.random()<0.6) coins.push({x:x+30,y:y-20,taken:false});
-    if(Math.random()<0.25) checkpoints.push({x,y:y-30});
-    if(Math.random()<0.15) ammoCrates.push({x:x+50,y:y-20,taken:false});
-    if(Math.random()<0.10) mushrooms.push({x:x+70,y:y-16,taken:false});
+    if(mapRandom()<0.6) coins.push({x:x+30,y:y-20,taken:false});
+    if(mapRandom()<0.25) checkpoints.push({x,y:y-30});
+    if(mapRandom()<0.15) ammoCrates.push({x:x+50,y:y-20,taken:false});
+    if(mapRandom()<0.10) mushrooms.push({x:x+70,y:y-16,taken:false});
 
-    if(currentBiome.name === "Sky Kingdom" && Math.random() < 0.12){
-      angels.push({ x: x+35, y: y-60, w: 24, h: 30, hoverAngle: Math.random()*Math.PI*2, basey: y-60, taken: false });
+    if(currentBiome.name === "Sky Kingdom" && mapRandom() < 0.12){
+      angels.push({ x: x+35, y: y-60, w: 24, h: 30, hoverAngle: mapRandom()*Math.PI*2, basey: y-60, taken: false });
     }
 
-    if(Math.random()<0.20){
-      let pr = Math.random();
+    if(mapRandom()<0.20){
+      let pr = mapRandom();
       let pType = "shield";
       if(pr < 0.20) pType = "shield";
       else if(pr < 0.40) pType = "triple";
@@ -1838,6 +2056,8 @@ function draw(){
     if(twoPlayerMode) ctx.strokeRect(player2.x, player2.y, player2.w, player2.h);
   }
 
+  if(typeof drawRemotePlayers === "function") drawRemotePlayers();
+
   ctx.restore();
 
   ctx.fillStyle="green";
@@ -1939,6 +2159,7 @@ let canSend = true;
 let currentTab = "global";
 const loadedMsgIds = new Set();
 let cachedMessages = [];
+let onlineUsers = new Map();
 
 usernameInput.disabled = true;
 
@@ -2012,37 +2233,64 @@ async function handleLogin() {
 }
 
 async function handleLogout() {
+  if(typeof leaveRoom === "function") leaveRoom(false);
+  if(typeof maybeSubmitScore === "function") maybeSubmitScore(true);
   await client.auth.signOut();
 }
 
 function showChatUI() {
   authOverlay.style.display = "none";
   chatTabs.style.display = "flex";
+  document.getElementById("tabFriends").style.display = "block";
   messages.style.display = "block";
   chatBottom.style.display = "block";
   logoutBtn.style.display = "inline-block";
 
   usernameInput.disabled = true;
 
+  const accountLine = document.getElementById("menuAccount");
+  if(accountLine) accountLine.textContent = "Signed in as " + chatDisplayName() + " · friends & leaderboard enabled";
+
+  if(typeof ensureProfile === "function") ensureProfile();
   loadMessages();
   setupPresence();
+  if(typeof loadFriends === "function") loadFriends();
 }
 
 function showAuthUI() {
   authOverlay.style.display = "flex";
   chatTabs.style.display = "none";
+  document.getElementById("tabFriends").style.display = "none";
   messages.style.display = "none";
   chatBottom.style.display = "none";
+  document.getElementById("friendsPanel").style.display = "none";
   logoutBtn.style.display = "none";
   document.getElementById("onlineCount").textContent = "🟢 0 Online";
+  onlineUsers.clear();
+
+  const accountLine = document.getElementById("menuAccount");
+  if(accountLine) accountLine.textContent = "Not signed in · chat, friends & leaderboard need login";
 }
 
 function switchTab(tab) {
   currentTab = tab;
   document.getElementById("tabGlobal").className = "chatTab" + (tab === "global" ? " active" : "");
   document.getElementById("tabDM").className = "chatTab" + (tab === "dm" ? " active" : "");
+  document.getElementById("tabFriends").className = "chatTab" + (tab === "friends" ? " active" : "");
   dmControls.style.display = tab === "dm" ? "flex" : "none";
-  renderMessages();
+
+  const friendsPanel = document.getElementById("friendsPanel");
+  if(tab === "friends"){
+    friendsPanel.style.display = "block";
+    messages.style.display = "none";
+    chatBottom.style.display = "none";
+    if(typeof loadFriends === "function") loadFriends();
+  } else {
+    friendsPanel.style.display = "none";
+    messages.style.display = "block";
+    chatBottom.style.display = "block";
+    renderMessages();
+  }
 }
 
 function syncDmTarget(val) {
@@ -2103,7 +2351,9 @@ function appendMessageElement(user, text, createdAt = null, targetUser = null) {
 
         const message = document.createElement("div");
         message.className = "chatText";
-        message.textContent = text;
+
+        const inviteMatch = /^\s*\[\[room:([A-Za-z0-9\-]{2,12})\]\]\s*/i.exec(text);
+        message.textContent = inviteMatch ? text.slice(inviteMatch[0].length) : text;
 
         const time = document.createElement("div");
         time.className = "chatTime";
@@ -2113,6 +2363,18 @@ function appendMessageElement(user, text, createdAt = null, targetUser = null) {
 
         bubble.appendChild(header);
         bubble.appendChild(message);
+
+        if(inviteMatch && inviteMatch[1]){
+            const code = inviteMatch[1].toUpperCase();
+            const joinBtn = document.createElement("button");
+            joinBtn.className = "chatInvite";
+            joinBtn.textContent = "🎮 Join room " + code;
+            joinBtn.onclick = () => {
+                if(typeof joinRoom === "function") joinRoom(code, true);
+            };
+            bubble.appendChild(joinBtn);
+        }
+
         bubble.appendChild(time);
     }
 
@@ -2206,15 +2468,38 @@ client.channel("chat-room").on("postgres_changes", { event: "INSERT", schema: "p
 }).subscribe();
 
 let presenceChannel;
+
+function chatDisplayName(){
+  const typed = usernameInput.value.trim();
+  if(typed) return typed;
+  if(currentUser && currentUser.user_metadata && currentUser.user_metadata.username) return currentUser.user_metadata.username;
+  if(currentUser && currentUser.email) return currentUser.email.split("@")[0];
+  return "Player";
+}
+
+async function retrackPresence(){
+  if(!presenceChannel || !currentUser) return;
+  try{
+    await presenceChannel.track({
+      username: chatDisplayName(),
+      user_id: currentUser.id,
+      room: (window.MP && window.MP.active && !window.MP.isPrivate) ? window.MP.roomCode : null
+    });
+  } catch(e){ /* presence is best-effort */ }
+}
+
 function setupPresence() {
   if (presenceChannel) presenceChannel.unsubscribe();
   presenceChannel = client.channel("online-users");
   presenceChannel.on("presence", { event: "sync" }, () => {
     const state = presenceChannel.presenceState();
     const onlineUsernames = [];
-    
+    onlineUsers.clear();
+
     Object.values(state).forEach(presences => {
       presences.forEach(p => {
+        const uidKey = p.user_id || ("name:" + p.username);
+        onlineUsers.set(uidKey, { username: p.username, room: p.room || null, user_id: p.user_id || null });
         if (p.username && p.username !== usernameInput.value) {
           onlineUsernames.push(p.username);
         }
@@ -2230,9 +2515,12 @@ function setupPresence() {
       opt.textContent = uname;
       dmSelect.appendChild(opt);
     });
+
+    if(typeof updateFriendsPresence === "function") updateFriendsPresence();
+    if(typeof renderRoomList === "function") renderRoomList();
   }).subscribe(async (status) => {
     if (status === "SUBSCRIBED" && currentUser) {
-      await presenceChannel.track({ username: usernameInput.value || currentUser.email });
+      await retrackPresence();
     }
   });
 }
@@ -2248,6 +2536,7 @@ minimizeBtn.onclick = () => {
         authOverlay.style.display = "none";
         chatTabs.style.display = "none";
         messages.style.display = "none";
+        document.getElementById("friendsPanel").style.display = "none";
         chatBottom.style.display = "none";
         handle.style.display = "none";
         chatBox.style.height = "45px";
@@ -2255,8 +2544,15 @@ minimizeBtn.onclick = () => {
     } else {
         if (currentUser) {
             chatTabs.style.display = "flex";
-            messages.style.display = "";
-            chatBottom.style.display = "";
+            if(currentTab === "friends"){
+                messages.style.display = "none";
+                chatBottom.style.display = "none";
+                document.getElementById("friendsPanel").style.display = "block";
+            } else {
+                messages.style.display = "";
+                chatBottom.style.display = "";
+                document.getElementById("friendsPanel").style.display = "none";
+            }
         } else {
             authOverlay.style.display = "flex";
         }
@@ -2280,5 +2576,878 @@ document.addEventListener("mousemove", e => {
     chatBox.style.height = newHeight + "px";
 });
 </script>
+<script>
+/* ============================================================
+   MULTIPLAYER · FRIENDS · LEADERBOARD
+   ------------------------------------------------------------
+   - Rooms are Supabase Realtime channels.
+   - The room code is hashed into the map seed, so every player
+     in a room generates the exact same level.
+   - Friends + leaderboard use the `friends` / `leaderboard`
+     tables. Run supabase_schema.sql once to provision them.
+   ============================================================ */
+
+const GUEST_NAME = (() => {
+  let g = sessionStorage.getItem("shnailGuestName");
+  if(!g){
+    g = "Guest-" + Math.random().toString(36).slice(2, 6).toUpperCase();
+    sessionStorage.setItem("shnailGuestName", g);
+  }
+  return g;
+})();
+
+const MP = window.MP = {
+  active: false,
+  roomCode: null,
+  isPrivate: false,
+  channel: null,
+  players: new Map(),
+  sessionId: (crypto.randomUUID ? crypto.randomUUID() : "s-" + Math.random().toString(36).slice(2) + Date.now().toString(36)),
+  lastBroadcast: 0
+};
+
+const PUBLIC_ROOMS = [
+  { code: "LOBBY-1", name: "Lobby One", desc: "Open lobby" },
+  { code: "LOBBY-2", name: "Lobby Two", desc: "Open lobby" },
+  { code: "LOBBY-3", name: "Lobby Three", desc: "Open lobby" }
+];
+
+/* ---------------- small helpers ---------------- */
+
+function myName(){
+  if(typeof currentUser !== "undefined" && currentUser) return chatDisplayName();
+  return GUEST_NAME;
+}
+
+function colorFor(name){
+  const palette = ["#4fc3f7", "#ff8a65", "#ba68c8", "#4db6ac", "#ffd54f", "#f06292", "#aed581", "#9575cd"];
+  return palette[hashString(String(name)) % palette.length];
+}
+
+function normalizeRoomCode(code){
+  return String(code || "").toUpperCase().replace(/[^A-Z0-9\-]/g, "").slice(0, 12);
+}
+
+function isPublicRoom(code){
+  return PUBLIC_ROOMS.some(r => r.code === normalizeRoomCode(code));
+}
+
+function mpToast(text){
+  const feed = document.getElementById("mpFeed");
+  if(!feed) return;
+  const el = document.createElement("div");
+  el.className = "mpToast";
+  el.textContent = text;
+  feed.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+function updateMenuStatus(){
+  const el = document.getElementById("menuRoomStatus");
+  if(!el) return;
+  if(MP.active){
+    el.style.display = "block";
+    el.textContent = (MP.isPrivate ? "🔒 Private room " : "🌐 Room ") + MP.roomCode +
+      " · same map for everyone · seed " + mapSeed;
+  } else {
+    el.style.display = "none";
+    el.textContent = "";
+  }
+}
+
+function updateRoomHud(){
+  const hud = document.getElementById("roomHud");
+  if(!hud) return;
+  if(!MP.active){
+    hud.style.display = "none";
+    return;
+  }
+  const now = performance.now();
+  MP.players.forEach((p, sid) => { if(now - (p.seen || 0) > 5000) MP.players.delete(sid); });
+  const count = MP.players.size + 1;
+  hud.style.display = "block";
+  hud.innerHTML = "";
+  const line1 = document.createElement("div");
+  line1.innerHTML = "ROOM <b>" + MP.roomCode + "</b> " + (MP.isPrivate ? "🔒" : "🌐") +
+    " · <b>" + count + "</b> player" + (count === 1 ? "" : "s") + " · seed " + mapSeed;
+  const line2 = document.createElement("div");
+  line2.style.opacity = ".7";
+  line2.textContent = "Shared map · invite with the room code";
+  hud.appendChild(line1);
+  hud.appendChild(line2);
+}
+
+/* ---------------- room UI ---------------- */
+
+function openRoomPanel(){
+  updateRoomPanelState();
+  renderRoomList();
+  document.getElementById("roomPanel").classList.add("open");
+}
+
+function closeRoomPanel(){
+  document.getElementById("roomPanel").classList.remove("open");
+  document.getElementById("roomError").textContent = "";
+}
+
+function updateRoomPanelState(){
+  const box = document.getElementById("currentRoomBox");
+  if(!box) return;
+  if(MP.active){
+    box.style.display = "block";
+    document.getElementById("currentRoomCode").textContent = MP.roomCode;
+    const privacy = document.getElementById("currentRoomPrivacy");
+    privacy.textContent = MP.isPrivate ? "private" : "public";
+    privacy.className = "pill " + (MP.isPrivate ? "purple" : "green");
+  } else {
+    box.style.display = "none";
+  }
+}
+
+function renderRoomList(){
+  const list = document.getElementById("publicRoomList");
+  if(!list) return;
+
+  const counts = {};
+  if(typeof onlineUsers !== "undefined"){
+    onlineUsers.forEach(u => {
+      if(u.room) counts[u.room] = (counts[u.room] || 0) + 1;
+    });
+  }
+
+  list.innerHTML = "";
+  PUBLIC_ROOMS.forEach(room => {
+    const row = document.createElement("div");
+    row.className = "roomRow";
+
+    const info = document.createElement("div");
+    const title = document.createElement("div");
+    title.innerHTML = "🌐 <b>" + room.name + "</b> <span class=\"pill green\">" + room.code + "</span>";
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const n = counts[room.code] || 0;
+    meta.textContent = room.desc + " · " + n + " player" + (n === 1 ? "" : "s") + " online";
+    info.appendChild(title);
+    info.appendChild(meta);
+
+    const btn = document.createElement("button");
+    btn.className = "gbtn";
+    btn.textContent = (MP.active && MP.roomCode === room.code) ? "Rejoin" : "Join";
+    btn.onclick = () => joinRoom(room.code, false);
+
+    row.appendChild(info);
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
+}
+
+async function joinRoomFromInput(){
+  const input = document.getElementById("joinCodeInput");
+  const code = normalizeRoomCode(input.value);
+  if(code.length < 3){
+    document.getElementById("roomError").textContent = "Enter a room code with at least 3 characters.";
+    return;
+  }
+  document.getElementById("roomError").textContent = "";
+  await joinRoom(code, !isPublicRoom(code));
+}
+
+function createPrivateRoom(){
+  const code = "PVT-" + Math.random().toString(36).slice(2, 6).toUpperCase();
+  joinRoom(code, true);
+}
+
+function copyRoomLink(){
+  if(!MP.active) return;
+  const link = location.origin + location.pathname + "?room=" + encodeURIComponent(MP.roomCode);
+  const done = () => mpToast("Invite link copied — send it to a friend");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(done).catch(() => prompt("Copy this invite link:", link));
+  } else {
+    prompt("Copy this invite link:", link);
+  }
+}
+
+/* ---------------- joining / leaving ---------------- */
+
+async function joinRoom(code, isPrivate = false){
+  code = normalizeRoomCode(code);
+  if(code.length < 3){
+    mpToast("Invalid room code");
+    return;
+  }
+
+  /* Leaving first makes re-joining the same room rebuild from scratch. */
+  leaveRoom(false);
+
+  MP.active = true;
+  MP.roomCode = code;
+  MP.isPrivate = !!isPrivate;
+  MP.players.clear();
+  /* Easy mode changes which enemies spawn, which would desync the
+     deterministic generator. Force it off for shared rooms. */
+  if(easyMode){
+    easyMode = false;
+    const ezBtn = document.getElementById("easyModeButton");
+    if(ezBtn){ ezBtn.innerText = "EASY MODE: OFF"; ezBtn.classList.remove("active"); }
+  }
+
+  setMapSeed(seedFromRoom(code));
+  lastSubmittedScore = 0;
+
+  updateMenuStatus();
+  updateRoomPanelState();
+  updateRoomHud();
+
+  joinRoomChannel(code);
+  startGame();
+  closeRoomPanel();
+
+  mpToast((isPrivate ? "🔒 Private room " : "🌐 Joined room ") + code + " — same map seed for everyone");
+  if(typeof retrackPresence === "function") retrackPresence();
+  renderRoomList();
+}
+
+function joinRoomChannel(code){
+  MP.channel = client.channel("shnail-room:" + code, {
+    config: {
+      presence: { key: MP.sessionId },
+      broadcast: { self: false }
+    }
+  });
+
+  MP.channel
+    .on("broadcast", { event: "pos" }, ({ payload }) => {
+      if(!payload || payload.sid === MP.sessionId) return;
+      MP.players.set(payload.sid, {
+        sid: payload.sid,
+        name: payload.name || "Player",
+        x: payload.x,
+        y: payload.y,
+        facing: payload.facing || 1,
+        score: payload.score || 0,
+        biome: payload.biome || "",
+        seen: performance.now()
+      });
+    })
+    .on("broadcast", { event: "bye" }, ({ payload }) => {
+      if(payload && payload.sid) MP.players.delete(payload.sid);
+      updateRoomHud();
+    })
+    .on("broadcast", { event: "chat" }, ({ payload }) => {
+      if(payload && payload.name) mpToast(payload.name + ": " + payload.text);
+    })
+    .on("presence", { event: "sync" }, () => {
+      const state = MP.channel ? MP.channel.presenceState() : {};
+      const live = new Set();
+      Object.values(state).forEach(list => list.forEach(p => {
+        if(p.sid && p.sid !== MP.sessionId) live.add(p.sid);
+      }));
+      MP.players.forEach((p, sid) => {
+        if(!live.has(sid) && performance.now() - (p.seen || 0) > 2500) MP.players.delete(sid);
+      });
+      updateRoomHud();
+    })
+    .subscribe(async (status) => {
+      if(status === "SUBSCRIBED"){
+        try{
+          await MP.channel.track({
+            sid: MP.sessionId,
+            user_id: (typeof currentUser !== "undefined" && currentUser) ? currentUser.id : null,
+            name: myName(),
+            room: code
+          });
+        } catch(e){}
+        broadcastPosition();
+        updateRoomHud();
+      }
+    });
+}
+
+function broadcastPosition(){
+  if(!MP.channel || !MP.active) return;
+  const now = performance.now();
+  if(now - MP.lastBroadcast < 100) return;
+  MP.lastBroadcast = now;
+  try{
+    MP.channel.send({
+      type: "broadcast",
+      event: "pos",
+      payload: {
+        sid: MP.sessionId,
+        name: myName(),
+        x: Math.round(player.x),
+        y: Math.round(player.y),
+        facing: player.facing,
+        score: score,
+        biome: currentBiome.name,
+        ts: Date.now()
+      }
+    });
+  } catch(e){}
+}
+
+function leaveRoom(showMenu = false){
+  if(typeof maybeSubmitScore === "function") maybeSubmitScore(true);
+
+  if(MP.channel){
+    try{ MP.channel.send({ type: "broadcast", event: "bye", payload: { sid: MP.sessionId } }); } catch(e){}
+    try{ MP.channel.untrack(); } catch(e){}
+    try{ client.removeChannel(MP.channel); } catch(e){}
+  }
+
+  MP.channel = null;
+  MP.active = false;
+  MP.roomCode = null;
+  MP.isPrivate = false;
+  MP.players.clear();
+  lastSubmittedScore = 0;
+
+  updateRoomHud();
+  updateMenuStatus();
+  updateRoomPanelState();
+  if(typeof renderRoomList === "function") renderRoomList();
+  if(typeof retrackPresence === "function") retrackPresence();
+
+  setMapSeed((Math.random() * 4294967296) >>> 0);
+
+  if(showMenu){
+    paused = true;
+    menu.style.display = "block";
+    mpToast("Left the room");
+  }
+}
+
+/* ---------------- drawing remote players ---------------- */
+
+function drawRemotePlayers(){
+  if(!MP.active) return;
+  const now = performance.now();
+  MP.players.forEach((p, sid) => {
+    if(now - (p.seen || 0) > 6000){
+      MP.players.delete(sid);
+      return;
+    }
+    const color = colorFor(p.name);
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = color;
+    ctx.fillRect(p.x, p.y, 30, 30);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(p.x + (p.facing < 0 ? 4 : 20), p.y + 8, 6, 6);
+
+    const label = p.name || "Player";
+    ctx.font = "11px monospace";
+    const w = ctx.measureText(label).width;
+    ctx.fillStyle = "rgba(0,0,0,.55)";
+    ctx.fillRect(p.x + 15 - w / 2 - 4, p.y - 21, w + 8, 16);
+    ctx.fillStyle = color;
+    ctx.textAlign = "center";
+    ctx.fillText(label, p.x + 15, p.y - 9);
+    ctx.textAlign = "left";
+    ctx.restore();
+  });
+}
+
+/* ---------------- score leaderboard ---------------- */
+
+let LB_HAS_ROOM = false;
+let LB_HAS_USER = false;
+let lastSubmittedScore = 0;
+let lastSubmitAt = 0;
+let lbTab = "global";
+
+async function detectLeaderboardSchema(){
+  try{
+    const roomProbe = await client.from("leaderboard").select("room_code").limit(1);
+    LB_HAS_ROOM = !roomProbe.error;
+    const userProbe = await client.from("leaderboard").select("user_id").limit(1);
+    LB_HAS_USER = !userProbe.error;
+  } catch(e){
+    LB_HAS_ROOM = false;
+    LB_HAS_USER = false;
+  }
+}
+
+async function maybeSubmitScore(force = false){
+  if(!currentUser) return;
+  if(typeof score === "undefined" || score <= 0) return;
+  const now = performance.now();
+
+  if(!force){
+    if(now - lastSubmitAt < 15000) return;
+    if(score <= lastSubmittedScore + 20) return;
+  }
+  if(score <= lastSubmittedScore && !force) return;
+
+  const payload = {
+    username: myName(),
+    score: Math.floor(score)
+  };
+  if(LB_HAS_ROOM) payload.room_code = MP.active ? MP.roomCode : null;
+  if(LB_HAS_USER) payload.user_id = currentUser.id;
+
+  lastSubmitAt = now;
+  const { error } = await client.from("leaderboard").insert([payload]);
+  if(!error) lastSubmittedScore = Math.floor(score);
+  else console.warn("Score submit failed:", error.message);
+}
+
+function openLeaderboard(){
+  document.getElementById("leaderboardPanel").classList.add("open");
+  loadLeaderboard();
+}
+
+function closeLeaderboard(){
+  document.getElementById("leaderboardPanel").classList.remove("open");
+}
+
+function switchLbTab(tab){
+  lbTab = tab;
+  document.querySelectorAll("#lbTabs .lbTab").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === tab);
+    btn.style.background = btn.dataset.tab === tab ? "#28a745" : "#2c2c2c";
+  });
+  loadLeaderboard();
+}
+
+function lbMessage(text){
+  const body = document.getElementById("lbBody");
+  body.innerHTML = "";
+  const div = document.createElement("div");
+  div.style.cssText = "opacity:.7;font-size:12px;line-height:1.6;padding:8px 0;";
+  div.textContent = text;
+  body.appendChild(div);
+}
+
+async function loadLeaderboard(){
+  const body = document.getElementById("lbBody");
+  if(!currentUser){
+    body.innerHTML = "";
+    const div = document.createElement("div");
+    div.style.cssText = "font-size:12px;line-height:1.6;padding:8px 0;";
+    div.textContent = "Sign in through the chat box to view and submit to the leaderboard.";
+    body.appendChild(div);
+    return;
+  }
+
+  if(lbTab === "room"){
+    if(!MP.active){ lbMessage("Join a multiplayer room to see that room's leaderboard."); return; }
+    if(!LB_HAS_ROOM){ lbMessage("Per-room leaderboard is not enabled yet. Run supabase_schema.sql to add the room column."); return; }
+  }
+
+  body.innerHTML = "";
+  const loading = document.createElement("div");
+  loading.style.cssText = "opacity:.6;font-size:12px;";
+  loading.textContent = "Loading...";
+  body.appendChild(loading);
+
+  let query = client.from("leaderboard").select("*").order("score", { ascending: false }).limit(300);
+
+  if(lbTab === "room") query = query.eq("room_code", MP.roomCode);
+
+  let friendIds = [];
+  let friendNames = [];
+  if(lbTab === "friends"){
+    const accepted = friendsData.filter(f => f.status === "accepted");
+    if(accepted.length === 0){ lbMessage("Add some friends first — the Friends tab is in the chat box."); return; }
+    const uid = currentUser.id;
+    friendIds = accepted.map(f => f.requester === uid ? f.addressee : f.requester);
+    friendNames = accepted.map(f => f.requester === uid ? f.addressee_name : f.requester_name);
+    if(LB_HAS_USER) query = query.in("user_id", [uid, ...friendIds]);
+  }
+
+  const { data, error } = await query;
+
+  if(error){ lbMessage("Could not load leaderboard: " + error.message); return; }
+
+  let rows = data || [];
+  if(lbTab === "friends" && !LB_HAS_USER){
+    const allowed = new Set([myName().toLowerCase(), ...friendNames.map(n => String(n).toLowerCase())]);
+    rows = rows.filter(r => allowed.has(String(r.username).toLowerCase()));
+  }
+
+  /* Keep each player's best score. */
+  const best = new Map();
+  rows.forEach(r => {
+    const key = String(r.username || "anon").toLowerCase();
+    const prev = best.get(key);
+    if(!prev || r.score > prev.score) best.set(key, r);
+  });
+  const sorted = [...best.values()].sort((a, b) => b.score - a.score).slice(0, 50);
+
+  body.innerHTML = "";
+  if(sorted.length === 0){
+    lbMessage(lbTab === "room" ? "No scores in this room yet — play a run to claim first place." : "No scores yet. Be the first!");
+    return;
+  }
+
+  const me = myName().toLowerCase();
+  sorted.forEach((r, i) => {
+    const row = document.createElement("div");
+    row.className = "lbRow" + (String(r.username).toLowerCase() === me ? " me" : "");
+
+    const rank = document.createElement("div");
+    rank.className = "rank";
+    rank.textContent = (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "#" + (i + 1));
+
+    const name = document.createElement("div");
+    name.className = "lbName";
+    name.textContent = r.username || "anon";
+    if(lbTab === "room" && r.room_code) {
+      const tag = document.createElement("span");
+      tag.className = "pill";
+      tag.textContent = r.room_code;
+      name.appendChild(tag);
+    }
+
+    const sc = document.createElement("div");
+    sc.className = "lbScore";
+    sc.textContent = Number(r.score).toLocaleString();
+
+    row.appendChild(rank);
+    row.appendChild(name);
+    row.appendChild(sc);
+    body.appendChild(row);
+  });
+
+  const updated = document.createElement("div");
+  updated.style.cssText = "opacity:.45;font-size:10px;margin-top:10px;";
+  updated.textContent = lbTab === "friends" ? "Your best + your friends' best scores."
+    : lbTab === "room" ? "Best scores in room " + MP.roomCode + "."
+    : "Global best scores (one row per player).";
+  body.appendChild(updated);
+}
+
+/* ---------------- friends ---------------- */
+
+let friendsData = [];
+const FRIEND_SEARCH_MIN = 2;
+
+async function ensureProfile(){
+  if(!currentUser) return;
+  try{
+    await client.from("profiles").upsert(
+      { id: currentUser.id, username: chatDisplayName() },
+      { onConflict: "id" }
+    );
+  } catch(e){ /* profiles table may be read-only for anon; chat still works */ }
+}
+
+async function loadFriends(){
+  if(!currentUser) return;
+  const uid = currentUser.id;
+  const { data, error } = await client.from("friends").select("*").or("requester.eq." + uid + ",addressee.eq." + uid);
+
+  if(error){
+    renderFriendsSetupNeeded(error);
+    return;
+  }
+  friendsData = data || [];
+  renderFriends();
+}
+
+function renderFriendsSetupNeeded(error){
+  const list = document.getElementById("friendList");
+  const reqs = document.getElementById("friendRequests");
+  const msg = document.createElement("div");
+  msg.style.cssText = "font-size:11px;line-height:1.6;color:#ffca28;";
+  msg.textContent = (error.code === "PGRST205" || error.code === "42P01")
+    ? "Friends backend not set up yet. Run supabase_schema.sql in your Supabase SQL editor once, then reload."
+    : "Could not load friends: " + error.message;
+  if(list) { list.innerHTML = ""; list.appendChild(msg); }
+  if(reqs) reqs.innerHTML = "";
+}
+
+function friendRow(opts){
+  const row = document.createElement("div");
+  row.className = "friendRow";
+
+  const info = document.createElement("div");
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = opts.name;
+  info.appendChild(name);
+
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  if(opts.meta) meta.textContent = opts.meta;
+  info.appendChild(meta);
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+
+  (opts.buttons || []).forEach(b => {
+    const btn = document.createElement("button");
+    btn.className = "gbtn" + (b.ghost ? " ghost" : "");
+    btn.textContent = b.label;
+    btn.onclick = b.onClick;
+    actions.appendChild(btn);
+  });
+
+  row.appendChild(info);
+  row.appendChild(actions);
+  return row;
+}
+
+function renderFriends(){
+  const reqBox = document.getElementById("friendRequests");
+  const listBox = document.getElementById("friendList");
+  if(!reqBox || !listBox) return;
+
+  const uid = currentUser ? currentUser.id : null;
+  reqBox.innerHTML = "";
+  listBox.innerHTML = "";
+
+  const incoming = friendsData.filter(f => f.status === "pending" && f.addressee === uid);
+  const outgoing = friendsData.filter(f => f.status === "pending" && f.requester === uid);
+  const accepted = friendsData.filter(f => f.status === "accepted");
+
+  if(incoming.length === 0 && outgoing.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No pending requests.";
+    reqBox.appendChild(empty);
+  }
+
+  incoming.forEach(f => {
+    reqBox.appendChild(friendRow({
+      name: f.requester_name || "Player",
+      meta: "wants to be friends",
+      buttons: [
+        { label: "Accept", onClick: () => acceptFriendRequest(f) },
+        { label: "Decline", ghost: true, onClick: () => removeFriend(f) }
+      ]
+    }));
+  });
+
+  outgoing.forEach(f => {
+    reqBox.appendChild(friendRow({
+      name: f.addressee_name || "Player",
+      meta: "request pending",
+      buttons: [
+        { label: "Cancel", ghost: true, onClick: () => removeFriend(f) }
+      ]
+    }));
+  });
+
+  const onlineCountEl = document.getElementById("friendOnlineCount");
+  let onlineFriends = 0;
+
+  if(accepted.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No friends yet — search for a player above.";
+    listBox.appendChild(empty);
+  }
+
+  accepted.forEach(f => {
+    const isRequester = f.requester === uid;
+    const friendId = isRequester ? f.addressee : f.requester;
+    const friendName = (isRequester ? f.addressee_name : f.requester_name) || "Player";
+    const presence = onlineUsers.get(friendId) || onlineUsers.get("name:" + friendName);
+    const isOnline = !!presence;
+    const room = presence ? presence.room : null;
+    if(isOnline) onlineFriends++;
+
+    const buttons = [];
+    if(isOnline && room){
+      buttons.push({ label: "Join", onClick: () => joinRoom(room, !isPublicRoom(room)) });
+    }
+    if(MP.active){
+      buttons.push({ label: "Invite", ghost: true, onClick: () => inviteFriend(friendName) });
+    }
+    buttons.push({ label: "✕", ghost: true, onClick: () => removeFriend(f) });
+
+    const pillText = isOnline ? (room ? "online · " + room : "online") : "offline";
+    listBox.appendChild(friendRow({
+      name: friendName,
+      meta: pillText,
+      buttons: buttons
+    }));
+  });
+
+  if(onlineCountEl) onlineCountEl.textContent = onlineFriends + " online";
+}
+
+function updateFriendsPresence(){
+  if(currentTab === "friends") renderFriends();
+  if(document.getElementById("leaderboardPanel").classList.contains("open") && lbTab === "friends"){
+    loadLeaderboard();
+  }
+}
+
+async function searchPlayers(query){
+  const box = document.getElementById("friendSearchResults");
+  if(!box) return;
+  box.innerHTML = "";
+
+  if(!currentUser || query.length < FRIEND_SEARCH_MIN) return;
+
+  const { data, error } = await client.from("profiles")
+    .select("id, username")
+    .ilike("username", "%" + query + "%")
+    .limit(8);
+
+  if(error){
+    const err = document.createElement("div");
+    err.className = "empty";
+    err.textContent = "Search failed: " + error.message;
+    box.appendChild(err);
+    return;
+  }
+
+  const results = (data || []).filter(p => p.id !== currentUser.id);
+  if(results.length === 0){
+    const none = document.createElement("div");
+    none.className = "empty";
+    none.textContent = "No players found.";
+    box.appendChild(none);
+    return;
+  }
+
+  const uid = currentUser.id;
+  results.forEach(p => {
+    const rel = friendsData.find(f =>
+      (f.requester === uid && f.addressee === p.id) ||
+      (f.addressee === uid && f.requester === p.id)
+    );
+
+    let label = "Add";
+    let onClick = () => sendFriendRequest(p.id, p.username);
+    let meta = "player";
+
+    if(rel && rel.status === "accepted"){
+      label = "Friends ✓";
+      meta = "already friends";
+      onClick = null;
+    } else if(rel && rel.status === "pending"){
+      if(rel.requester === uid){ label = "Pending"; meta = "request sent"; }
+      else { label = "Accept"; meta = "wants to be friends"; onClick = () => acceptFriendRequest(rel); }
+    }
+
+    const row = friendRow({
+      name: p.username || "Player",
+      meta: meta,
+      buttons: onClick ? [{ label: label, onClick: onClick }] : [{ label: label, ghost: true, onClick: () => {} }]
+    });
+    box.appendChild(row);
+  });
+}
+
+async function sendFriendRequest(targetId, targetName){
+  if(!currentUser) return;
+  const uid = currentUser.id;
+
+  if(friendsData.some(f =>
+    (f.requester === uid && f.addressee === targetId) ||
+    (f.addressee === uid && f.requester === targetId)
+  )){
+    mpToast("A friend request already exists with " + targetName);
+    return;
+  }
+
+  const { error } = await client.from("friends").insert([{
+    requester: uid,
+    addressee: targetId,
+    requester_name: myName(),
+    addressee_name: targetName,
+    status: "pending"
+  }]);
+
+  if(error){
+    mpToast("Friend request failed: " + error.message);
+  } else {
+    mpToast("Friend request sent to " + targetName);
+  }
+  await loadFriends();
+  searchPlayers(document.getElementById("friendSearch").value.trim());
+}
+
+async function acceptFriendRequest(rel){
+  if(!currentUser) return;
+  const { error } = await client.from("friends").update({ status: "accepted" }).eq("id", rel.id);
+  if(error) mpToast("Could not accept request: " + error.message);
+  else mpToast("You are now friends with " + (rel.requester_name || "them"));
+  await loadFriends();
+  const search = document.getElementById("friendSearch");
+  if(search && search.value.trim().length >= FRIEND_SEARCH_MIN){
+    searchPlayers(search.value.trim());
+  }
+}
+
+async function removeFriend(rel){
+  if(!currentUser) return;
+  const { error } = await client.from("friends").delete().eq("id", rel.id);
+  if(error) mpToast("Could not update friend: " + error.message);
+  await loadFriends();
+}
+
+async function inviteFriend(friendName){
+  if(!MP.active){
+    mpToast("Join a multiplayer room first, then invite friends.");
+    return;
+  }
+  if(!currentUser){
+    mpToast("Sign in to chat to invite friends.");
+    return;
+  }
+  const message = "[[room:" + MP.roomCode + "]] Join my run in room " + MP.roomCode + "!";
+  const { error } = await client.from("messages").insert([{
+    username: myName(),
+    message: message,
+    target_user: friendName
+  }]);
+  mpToast(error ? "Invite failed: " + error.message : "Room invite sent to " + friendName);
+}
+
+/* ---------------- boot ---------------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const search = document.getElementById("friendSearch");
+  if(search){
+    let timer = null;
+    search.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => searchPlayers(search.value.trim()), 300);
+    });
+  }
+
+  detectLeaderboardSchema();
+
+  try{
+    client.channel("friends-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "friends" }, () => {
+        if(currentUser) loadFriends();
+      })
+      .subscribe();
+  } catch(e){}
+
+  setInterval(() => {
+    if(!MP.active) return;
+    broadcastPosition();
+    updateRoomHud();
+  }, 120);
+
+  setInterval(() => { maybeSubmitScore(false); }, 10000);
+
+  window.addEventListener("pagehide", () => { maybeSubmitScore(true); });
+
+  /* Deep link: ?room=CODE */
+  const params = new URLSearchParams(location.search);
+  const roomParam = normalizeRoomCode(params.get("room"));
+  if(roomParam){
+    const input = document.getElementById("joinCodeInput");
+    if(input) input.value = roomParam;
+    setTimeout(() => {
+      openRoomPanel();
+      mpToast("Room invite detected: " + roomParam);
+    }, 400);
+  }
+});
+
+</script>
+
 </body>
 </html>
