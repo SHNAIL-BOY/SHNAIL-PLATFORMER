@@ -561,7 +561,8 @@ background:#4CAF50;
   font-size:10px; letter-spacing:1px; color:#7CFF7C; font-weight:bold;
 }
 #mpConnDot{ font-size:11px; color:#ed4245; }
-#mpRosterList{ overflow-y:auto; max-height:190px; padding:4px; }
+#mpRosterScroll{ flex:1; min-height:0; overflow-y:auto; }
+#mpRosterList{ padding:4px; }
 .mpRunner{
   display:flex; align-items:center; gap:6px; padding:4px 5px;
   border-radius:5px; font-size:11px;
@@ -601,6 +602,35 @@ background:#4CAF50;
   font-family:monospace;
 }
 #mpEmoteRow button:hover{ background:#2b5733; }
+
+/* ===== Race mode ===== */
+#raceResultsBox{
+  display:none; border-top:1px solid #244a24; padding:4px 6px;
+}
+#raceResultsTitle{
+  font-size:9px; letter-spacing:1px; color:#ffd54f; padding:2px 0 4px;
+  font-weight:bold;
+}
+.raceResultRow{
+  display:flex; align-items:center; font-size:10px; padding:2px 0; color:#cfeccf;
+}
+.raceResultRow .pos{ color:#ffd54f; width:18px; flex:0 0 18px; }
+.raceResultRow .nm{
+  flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px;
+}
+.raceResultRow .tm{ color:#7CFF7C; font-weight:bold; }
+.raceResultRow.mine{ color:#aeffae; }
+.raceResultEmpty{ font-size:10px; opacity:.5; padding:2px 0 4px; }
+.raceRecordsLabel{
+  font-size:9px; color:#949ba4; letter-spacing:1px; padding:5px 0 2px;
+}
+.raceProgress{
+  height:5px; background:#0b140b; border:1px solid #2f5a2f;
+  border-radius:3px; overflow:hidden; margin:2px 0 1px 19px;
+}
+.raceProgressFill{ height:100%; background:#2ed84b; width:0%; }
+.mpRunnerMeta.raceMeta{ display:flex; justify-content:space-between; gap:5px; padding-right:7px; }
+.modeBtn.active{ background:#28a745; border:none; }
 
 #pauseMenu{
   position:fixed; inset:0; display:none; align-items:center; justify-content:center;
@@ -712,7 +742,13 @@ background:#4CAF50;
     <span id="mpRosterTitle">RUNNERS</span>
     <span id="mpConnDot" title="Connecting...">●</span>
   </div>
-  <div id="mpRosterList"></div>
+  <div id="mpRosterScroll">
+    <div id="mpRosterList"></div>
+    <div id="raceResultsBox">
+      <div id="raceResultsTitle">🏁 RACE RESULTS</div>
+      <div id="raceResultsList"></div>
+    </div>
+  </div>
   <div id="mpChatLog"><div class="mpChatLine mpChatMuted">Room chat — say hi to your runners.</div></div>
   <div id="mpChatRow">
     <input id="mpChatInput" maxlength="120" placeholder="Message room..." autocomplete="off">
@@ -746,6 +782,14 @@ background:#4CAF50;
         <button class="gbtn" onclick="copyRoomLink()">📋 Copy Invite Link</button>
         <button class="gbtn ghost" onclick="returnToMainMenu()">Leave Room</button>
       </div>
+    </div>
+    <h3>MODE</h3>
+    <div class="rowFlex" style="margin-bottom:10px;">
+      <button id="modeCoopBtn" class="gbtn modeBtn active" onclick="setRoomMode('coop')">👥 Co-op</button>
+      <button id="modeRaceBtn" class="gbtn modeBtn ghost" onclick="setRoomMode('race')">🏁 Race</button>
+    </div>
+    <div id="roomModeHint" style="font-size:10px;opacity:.6;margin-bottom:10px;line-height:1.5;">
+      Co-op is endless free running. Race is a fixed course with a shared finish line, checkpoints and times.
     </div>
     <h3>PUBLIC ROOMS · SAME MAP FOR EVERYONE</h3>
     <div id="publicRoomList"></div>
@@ -1057,6 +1101,17 @@ let debugInfiniteAmmo = false;
 let debugHitboxes = false;
 let noclip = false;
 
+/* Debug tools are locked to the owner's account. */
+const DEBUG_EMAIL = "shnailboy@gmail.com";
+function canUseDebug(){
+  try{
+    return typeof currentUser !== "undefined" && !!currentUser &&
+      String(currentUser.email || "").toLowerCase() === DEBUG_EMAIL;
+  } catch(e){
+    return false;
+  }
+}
+
 let debugPopup = 0;
 
 let fps = 0;
@@ -1206,6 +1261,7 @@ document.addEventListener("keydown",e=>{
     }
   }
 
+  if(debugMode && !canUseDebug()) debugMode = false;
   if(debugMode){
       if(e.code==="Digit1") debugInvincible = !debugInvincible;
       if(e.code==="Digit2") debugInfiniteAmmo = !debugInfiniteAmmo;
@@ -1217,6 +1273,10 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("keydown",e=>{
     if(e.ctrlKey && e.altKey && e.code==="KeyS"){
         e.preventDefault();
+        if(!canUseDebug()){
+            if(typeof mpToast === "function") mpToast("Debug mode is restricted to the game owner.");
+            return;
+        }
         debugMode = !debugMode;
         debugPopup = 180;
     }
@@ -1452,6 +1512,22 @@ function update(timestamp){
   if(paused){
     drawPauseScreen();
     lastTime = timestamp;
+    return requestAnimationFrame(update);
+  }
+
+  /* Debug tools are owner-only; drop them immediately for anyone else. */
+  if(debugMode && typeof canUseDebug === "function" && !canUseDebug()){
+    debugMode = false;
+    debugInvincible = false;
+    debugInfiniteAmmo = false;
+    debugHitboxes = false;
+    noclip = false;
+  }
+
+  /* Race countdown: freeze the world until GO so everyone starts even. */
+  if(typeof raceIsLocked === "function" && raceIsLocked()){
+    lastTime = timestamp;
+    draw();
     return requestAnimationFrame(update);
   }
   
@@ -2003,6 +2079,7 @@ function update(timestamp){
   applyShake();
   updateParticles();
   updateHUD();
+  if(typeof raceTick === "function") raceTick();
 
   draw();
   requestAnimationFrame(update);
@@ -2339,6 +2416,7 @@ function draw(){
     if(twoPlayerMode) ctx.strokeRect(player2.x, player2.y, player2.w, player2.h);
   }
 
+  if(typeof drawRaceCourse === "function") drawRaceCourse();
   if(typeof drawRemotePlayers === "function") drawRemotePlayers();
   if(typeof drawSelfEmote === "function") drawSelfEmote();
 
@@ -2397,6 +2475,9 @@ function draw(){
     ctx.font = "bold 18px monospace";
     ctx.fillText(debugMode ? "🛠 DEBUG MODE ENABLED" : "🛠 DEBUG MODE DISABLED", 265, 46);
   }
+
+  /* Race countdown / timer / finish banner (screen space). */
+  if(typeof drawRaceOverlay === "function") drawRaceOverlay();
 }
   
 function drawPauseScreen(){
@@ -2573,6 +2654,15 @@ function showAuthUI() {
   cachedMessages = [];
   loadedMsgIds.clear();
   messages.innerHTML = "";
+
+  /* Debug mode is owner-only; clear it on sign-out. */
+  if(typeof debugMode !== "undefined" && debugMode){
+    debugMode = false;
+    debugInvincible = false;
+    debugInfiniteAmmo = false;
+    debugHitboxes = false;
+    noclip = false;
+  }
 
   /* Reset the DM view. */
   if(typeof chatBox !== "undefined" && chatBox) chatBox.classList.remove("dmMode");
@@ -3392,7 +3482,8 @@ async function retrackPresence(){
     await presenceChannel.track({
       username: chatDisplayName(),
       user_id: currentUser.id,
-      room: (window.MP && window.MP.active && !window.MP.isPrivate) ? window.MP.roomCode : null
+      room: (window.MP && window.MP.active && !window.MP.isPrivate) ? window.MP.roomCode : null,
+      mode: (window.MP && window.MP.active) ? window.MP.mode : null
     });
   } catch(e){ /* presence is best-effort */ }
 }
@@ -3408,7 +3499,7 @@ function setupPresence() {
     Object.values(state).forEach(presences => {
       presences.forEach(p => {
         const uidKey = p.user_id || ("name:" + p.username);
-        onlineUsers.set(uidKey, { username: p.username, room: p.room || null, user_id: p.user_id || null });
+        onlineUsers.set(uidKey, { username: p.username, room: p.room || null, mode: p.mode || "coop", user_id: p.user_id || null });
         if (p.username && p.username !== usernameInput.value) {
           onlineUsernames.push(p.username);
         }
@@ -3523,8 +3614,37 @@ const MP = window.MP = {
   reconnectTimer: null,
   lastChatAt: 0,
   lastEmoteAt: 0,
-  selfEmote: null
+  selfEmote: null,
+  mode: "coop",
+  race: null
 };
+
+let selectedRoomMode = (() => {
+  try{ return localStorage.getItem("shnailRoomMode") === "race" ? "race" : "coop"; }
+  catch(e){ return "coop"; }
+})();
+
+function setRoomMode(mode){
+  selectedRoomMode = (mode === "race") ? "race" : "coop";
+  try{ localStorage.setItem("shnailRoomMode", selectedRoomMode); } catch(e){}
+
+  const coop = document.getElementById("modeCoopBtn");
+  const race = document.getElementById("modeRaceBtn");
+  if(coop) coop.className = "gbtn modeBtn" + (selectedRoomMode === "coop" ? " active" : " ghost");
+  if(race) race.className = "gbtn modeBtn" + (selectedRoomMode === "race" ? " active" : " ghost");
+
+  const hint = document.getElementById("roomModeHint");
+  if(hint){
+    hint.textContent = selectedRoomMode === "race"
+      ? "Race: fixed course, shared finish line, checkpoints and finish times. Same map for everyone."
+      : "Co-op: endless free running with shared map and ghost players. No finish line.";
+  }
+  if(typeof renderRoomList === "function") renderRoomList();
+}
+
+function modeLabel(mode){
+  return mode === "race" ? "🏁 RACE" : "👥 CO-OP";
+}
 
 const PUBLIC_ROOMS = [
   { code: "LOBBY-1", name: "Lobby One", desc: "Open lobby" },
@@ -3568,7 +3688,7 @@ function updateMenuStatus(){
   if(MP.active){
     el.style.display = "block";
     el.textContent = (MP.isPrivate ? "🔒 Private room " : "🌐 Room ") + MP.roomCode +
-      " · same map for everyone · seed " + mapSeed;
+      " · " + modeLabel(MP.mode) + " · same map for everyone · seed " + mapSeed;
   } else {
     el.style.display = "none";
     el.textContent = "";
@@ -3589,10 +3709,13 @@ function updateRoomHud(){
   hud.innerHTML = "";
   const line1 = document.createElement("div");
   line1.innerHTML = "ROOM <b>" + MP.roomCode + "</b> " + (MP.isPrivate ? "🔒" : "🌐") +
+    " · " + modeLabel(MP.mode) +
     " · <b>" + count + "</b> player" + (count === 1 ? "" : "s") + " · seed " + mapSeed;
   const line2 = document.createElement("div");
   line2.style.opacity = ".7";
-  line2.textContent = "Shared map · invite with the room code";
+  line2.textContent = MP.mode === "race"
+    ? "Shared finish line · reach the flag to set a time"
+    : "Shared map · invite with the room code";
   hud.appendChild(line1);
   hud.appendChild(line2);
 }
@@ -3614,7 +3737,8 @@ function updateRejoinButton(){
   const last = getLastRoom();
   if(last && last.code && !(MP.active && MP.roomCode === last.code)){
     btn.style.display = "inline-block";
-    btn.textContent = "↩ Rejoin " + (last.isPrivate ? "🔒 " : "") + last.code;
+    btn.textContent = "↩ Rejoin " + (last.isPrivate ? "🔒 " : "") + last.code +
+      (last.mode === "race" ? " · RACE" : "");
   } else {
     btn.style.display = "none";
   }
@@ -3626,7 +3750,7 @@ function rejoinLastRoom(){
     mpToast("No previous room saved yet.");
     return;
   }
-  joinRoom(last.code, !!last.isPrivate);
+  joinRoom(last.code, !!last.isPrivate, last.mode || "coop");
 }
 
 /* ---------------- live roster + room chat ---------------- */
@@ -3635,13 +3759,19 @@ function renderMpRoster(){
   const panel = document.getElementById("mpRoster");
   if(!panel) return;
 
+  const resultsBox = document.getElementById("raceResultsBox");
+
   if(!MP.active){
     panel.classList.remove("open");
     panel.style.display = "none";
+    if(resultsBox) resultsBox.style.display = "none";
     return;
   }
   panel.style.display = "flex";
   panel.classList.add("open");
+
+  const race = MP.race;
+  if(resultsBox) resultsBox.style.display = race ? "block" : "none";
 
   const conn = document.getElementById("mpConnDot");
   if(conn){
@@ -3659,7 +3789,9 @@ function renderMpRoster(){
     score: (typeof score !== "undefined" ? score : 0),
     x: (typeof player !== "undefined" ? player.x : 0),
     biome: (typeof currentBiome !== "undefined" ? currentBiome.name : ""),
-    mine: true
+    mine: true,
+    finished: !!(race && race.finished),
+    finishMs: race ? race.finishMs : 0
   }];
 
   MP.players.forEach(p => {
@@ -3668,15 +3800,31 @@ function renderMpRoster(){
       score: p.score || 0,
       x: p.x || 0,
       biome: p.biome || "",
-      mine: false
+      mine: false,
+      finished: !!p.finished,
+      finishMs: p.finishMs || 0
     });
   });
 
-  rows.sort((a, b) => b.score - a.score);
-  if(title) title.textContent = "RUNNERS · " + rows.length;
+  if(race){
+    rows.sort((a, b) => {
+      if(a.finished && b.finished) return a.finishMs - b.finishMs;
+      if(a.finished) return -1;
+      if(b.finished) return 1;
+      return (b.x || 0) - (a.x || 0);
+    });
+  } else {
+    rows.sort((a, b) => b.score - a.score);
+  }
+
+  if(title) title.textContent = (race ? "RACERS · " : "RUNNERS · ") + rows.length;
 
   const scrollTop = list.scrollTop;
   list.innerHTML = "";
+
+  const startX = 100;
+  const finishX = race ? race.finishX : 0;
+
   rows.forEach(r => {
     const row = document.createElement("div");
     row.className = "mpRunner" + (r.mine ? " me" : "");
@@ -3689,18 +3837,40 @@ function renderMpRoster(){
     name.className = "mpName";
     name.textContent = r.mine ? (r.name + " (you)") : r.name;
 
-    const sc = document.createElement("span");
-    sc.className = "mpScore";
-    sc.textContent = Number(r.score || 0).toLocaleString();
+    const right = document.createElement("span");
+    right.className = "mpScore";
+
+    const pct = race
+      ? Math.max(0, Math.min(100, Math.round(((r.x - startX) / Math.max(1, finishX - startX)) * 100)))
+      : 0;
+
+    if(race){
+      right.textContent = r.finished ? formatRaceTime(r.finishMs) : (pct + "%");
+    } else {
+      right.textContent = Number(r.score || 0).toLocaleString();
+    }
 
     row.appendChild(dot);
     row.appendChild(name);
-    row.appendChild(sc);
+    row.appendChild(right);
     list.appendChild(row);
 
+    if(race){
+      const bar = document.createElement("div");
+      bar.className = "raceProgress";
+      const fill = document.createElement("div");
+      fill.className = "raceProgressFill";
+      fill.style.width = (r.finished ? 100 : pct) + "%";
+      fill.style.background = colorFor(r.name);
+      bar.appendChild(fill);
+      list.appendChild(bar);
+    }
+
     const meta = document.createElement("div");
-    meta.className = "mpRunnerMeta";
-    meta.textContent = Math.max(0, Math.floor((r.x || 0) / 10)) + "m · " + (r.biome || "—");
+    meta.className = "mpRunnerMeta" + (race ? " raceMeta" : "");
+    meta.textContent = race
+      ? (r.finished ? "finished · " + (r.biome || "—") : pct + "% · " + (r.biome || "—"))
+      : Math.max(0, Math.floor((r.x || 0) / 10)) + "m · " + (r.biome || "—");
     list.appendChild(meta);
   });
 
@@ -3876,6 +4046,361 @@ function scheduleReconnect(code, channel){
   }, 2500);
 }
 
+/* ---------------- race mode ---------------- */
+
+let RACE_TABLE_READY = null;
+
+function createRaceState(){
+  return {
+    finishX: 7200,
+    checkpoints: [2400, 4800],
+    countdownEnds: performance.now() + 3200,
+    startedAt: 0,
+    finished: false,
+    finishMs: 0,
+    splits: {},
+    results: [],
+    records: []
+  };
+}
+
+function formatRaceTime(ms){
+  const total = Math.max(0, Number(ms) || 0);
+  const mins = Math.floor(total / 60000);
+  const secs = (total % 60000) / 1000;
+  if(mins > 0) return mins + ":" + secs.toFixed(2).padStart(5, "0");
+  return secs.toFixed(2) + "s";
+}
+
+function raceIsLocked(){
+  const r = MP.race;
+  if(!MP.active || !r || r.startedAt) return false;
+  return performance.now() < r.countdownEnds;
+}
+
+function raceTick(){
+  const r = MP.race;
+  if(!MP.active || !r || typeof player === "undefined") return;
+
+  const now = performance.now();
+  if(!r.startedAt){
+    if(now >= r.countdownEnds){
+      r.startedAt = now;
+      mpToast("🏁 GO!");
+      renderMpRoster();
+    }
+    return;
+  }
+  if(r.finished) return;
+
+  r.checkpoints.forEach((cx, i) => {
+    if(!r.splits[i] && player.x + player.w >= cx){
+      r.splits[i] = now - r.startedAt;
+      mpToast("Checkpoint " + (i + 1) + " · " + formatRaceTime(r.splits[i]));
+    }
+  });
+
+  if(player.x + player.w >= r.finishX){
+    finishRace();
+  }
+}
+
+function addRaceResult(name, timeMs, sid, mine){
+  const r = MP.race;
+  if(!r) return;
+
+  const cleanName = String(name || "Player");
+  const key = cleanName.toLowerCase();
+  const duplicate = r.results.some(res =>
+    (sid && res.sid === sid) || (!sid && res.name.toLowerCase() === key)
+  );
+  if(duplicate) return;
+
+  r.results.push({ name: cleanName, timeMs: Math.round(Number(timeMs) || 0), sid: sid || null, mine: !!mine });
+  r.results.sort((a, b) => a.timeMs - b.timeMs);
+
+  renderRaceResults();
+  renderMpRoster();
+}
+
+async function detectRaceTable(){
+  try{
+    const { error } = await client.from("race_results").select("id").limit(1);
+    RACE_TABLE_READY = !error;
+  } catch(e){
+    RACE_TABLE_READY = false;
+  }
+}
+
+function raceLocalKey(){
+  return "shnailRace:" + MP.roomCode + ":" + (MP.mode || "race");
+}
+
+function loadLocalRaceRecords(){
+  try{
+    const raw = localStorage.getItem(raceLocalKey());
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch(e){ return []; }
+}
+
+function saveLocalRaceRecord(ms, name){
+  try{
+    const arr = loadLocalRaceRecords();
+    arr.push({ username: name || myName(), finish_ms: Math.round(Number(ms) || 0) });
+    arr.sort((a, b) => a.finish_ms - b.finish_ms);
+    localStorage.setItem(raceLocalKey(), JSON.stringify(arr.slice(0, 10)));
+  } catch(e){ /* storage full/blocked */ }
+}
+
+async function loadRaceResults(){
+  if(!MP.race) return;
+
+  const local = loadLocalRaceRecords();
+
+  if(RACE_TABLE_READY === null) await detectRaceTable();
+
+  if(!RACE_TABLE_READY){
+    if(!MP.race) return;
+    MP.race.records = local;
+    renderRaceResults();
+    return;
+  }
+
+  const room = MP.roomCode;
+  try{
+    const { data, error } = await client.from("race_results")
+      .select("*")
+      .eq("room_code", room)
+      .order("finish_ms", { ascending: true })
+      .limit(10);
+    if(error || !MP.race || MP.roomCode !== room) return;
+
+    const records = [...(data || [])];
+    /* Merge local records too, including any finish that happened while
+       the room query was in flight. */
+    [...local, ...loadLocalRaceRecords()].forEach(rec => {
+      if(!records.some(r => r.username === rec.username && Number(r.finish_ms) === Number(rec.finish_ms))){
+        records.push(rec);
+      }
+    });
+    records.sort((a, b) => Number(a.finish_ms) - Number(b.finish_ms));
+
+    MP.race.records = records.slice(0, 10);
+    renderRaceResults();
+  } catch(e){ /* room records are optional */ }
+}
+
+async function persistRaceResult(ms){
+  if(RACE_TABLE_READY === false) return;
+  try{
+    if(RACE_TABLE_READY === null) await detectRaceTable();
+    if(!RACE_TABLE_READY || !MP.roomCode) return;
+
+    const row = {
+      room_code: MP.roomCode,
+      username: myName(),
+      finish_ms: Math.round(Number(ms) || 0)
+    };
+    if(typeof currentUser !== "undefined" && currentUser) row.user_id = currentUser.id;
+
+    await client.from("race_results").insert([row]);
+  } catch(e){ /* optional persistence */ }
+}
+
+function finishRace(){
+  const r = MP.race;
+  if(!r || r.finished || !r.startedAt) return;
+
+  r.finished = true;
+  r.finishMs = performance.now() - r.startedAt;
+
+  addRaceResult(myName(), r.finishMs, MP.sessionId, true);
+  pushMpChat("System", myName() + " finished in " + formatRaceTime(r.finishMs), { system: true });
+  mpToast("🏁 Finish! " + formatRaceTime(r.finishMs));
+
+  try{
+    if(MP.channel){
+      MP.channel.send({
+        type: "broadcast",
+        event: "finish",
+        payload: {
+          sid: MP.sessionId,
+          name: myName(),
+          timeMs: Math.round(r.finishMs)
+        }
+      });
+    }
+  } catch(e){}
+
+  saveLocalRaceRecord(r.finishMs);
+  persistRaceResult(r.finishMs);
+  renderRaceResults();
+  renderMpRoster();
+}
+
+function renderRaceResults(){
+  const box = document.getElementById("raceResultsBox");
+  if(!box) return;
+
+  if(!MP.race){
+    box.style.display = "none";
+    return;
+  }
+  box.style.display = "block";
+
+  const list = document.getElementById("raceResultsList");
+  if(!list) return;
+  list.innerHTML = "";
+
+  const r = MP.race;
+
+  if(r.results.length){
+    r.results.forEach((res, i) => {
+      const row = document.createElement("div");
+      row.className = "raceResultRow" + (res.mine ? " mine" : "");
+
+      const pos = document.createElement("span");
+      pos.className = "pos";
+      pos.textContent = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "#" + (i + 1);
+
+      const name = document.createElement("span");
+      name.className = "nm";
+      name.textContent = res.name;
+
+      const time = document.createElement("span");
+      time.className = "tm";
+      time.textContent = formatRaceTime(res.timeMs);
+
+      row.appendChild(pos);
+      row.appendChild(name);
+      row.appendChild(time);
+      list.appendChild(row);
+    });
+  } else {
+    const empty = document.createElement("div");
+    empty.className = "raceResultEmpty";
+    empty.textContent = "No finishers yet — first to the flag wins.";
+    list.appendChild(empty);
+  }
+
+  if(r.records.length){
+    const label = document.createElement("div");
+    label.className = "raceRecordsLabel";
+    label.textContent = "ROOM BEST";
+    list.appendChild(label);
+
+    r.records.slice(0, 5).forEach((rec, i) => {
+      const row = document.createElement("div");
+      row.className = "raceResultRow";
+
+      const pos = document.createElement("span");
+      pos.className = "pos";
+      pos.textContent = "#" + (i + 1);
+
+      const name = document.createElement("span");
+      name.className = "nm";
+      name.textContent = rec.username || "Player";
+
+      const time = document.createElement("span");
+      time.className = "tm";
+      time.textContent = formatRaceTime(rec.finish_ms);
+
+      row.appendChild(pos);
+      row.appendChild(name);
+      row.appendChild(time);
+      list.appendChild(row);
+    });
+  }
+}
+
+/* Draw the shared checkpoints + finish line in world space. */
+function drawRaceCourse(){
+  const r = MP.race;
+  if(!MP.active || !r) return;
+
+  r.checkpoints.forEach((cx, i) => {
+    const passed = !!r.splits[i];
+    ctx.save();
+    ctx.globalAlpha = passed ? 0.35 : 0.65;
+    ctx.strokeStyle = passed ? "#7CFF7C" : "#ffd54f";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 8]);
+    ctx.beginPath();
+    ctx.moveTo(cx, 0);
+    ctx.lineTo(cx, canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = passed ? "#7CFF7C" : "#ffd54f";
+    ctx.font = "12px monospace";
+    ctx.fillText("CP" + (i + 1), cx + 6, 42 + i * 18);
+    ctx.restore();
+  });
+
+  const fx = r.finishX;
+  ctx.save();
+  for(let y = 0; y < canvas.height; y += 20){
+    ctx.fillStyle = (Math.floor(y / 20) % 2 === 0) ? "#ffffff" : "#111111";
+    ctx.fillRect(fx, y, 12, 20);
+  }
+  ctx.fillStyle = "#ffd54f";
+  ctx.font = "bold 16px monospace";
+  ctx.fillText("FINISH", fx + 18, 34);
+  ctx.restore();
+}
+
+/* Screen-space race HUD: countdown, timer, finish banner. */
+function drawRaceOverlay(){
+  const r = MP.race;
+  if(!MP.active || !r) return;
+
+  const now = performance.now();
+
+  if(!r.startedAt && now < r.countdownEnds){
+    const n = Math.max(1, Math.ceil((r.countdownEnds - now) / 1000));
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,.55)";
+    ctx.fillRect(0, 130, canvas.width, 110);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#7CFF7C";
+    ctx.font = "bold 64px monospace";
+    ctx.fillText(String(n), canvas.width / 2, 212);
+    ctx.font = "13px monospace";
+    ctx.fillStyle = "#cfeccf";
+    ctx.fillText("RACE STARTS IN…", canvas.width / 2, 234);
+    ctx.restore();
+    return;
+  }
+
+  if(!r.startedAt) return;
+
+  const elapsed = r.finished ? r.finishMs : (now - r.startedAt);
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(0,0,0,.45)";
+  ctx.fillRect(canvas.width / 2 - 72, 8, 144, 26);
+  ctx.fillStyle = r.finished ? "#7CFF7C" : "#fff700";
+  ctx.font = "bold 18px monospace";
+  ctx.fillText(formatRaceTime(elapsed), canvas.width / 2, 27);
+  ctx.restore();
+
+  if(r.finished){
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,.6)";
+    ctx.fillRect(0, canvas.height / 2 - 62, canvas.width, 124);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#7CFF7C";
+    ctx.font = "bold 30px monospace";
+    ctx.fillText("🏁 FINISHED", canvas.width / 2, canvas.height / 2 - 12);
+    ctx.font = "16px monospace";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(formatRaceTime(r.finishMs) + " — waiting for other racers", canvas.width / 2, canvas.height / 2 + 20);
+    ctx.restore();
+  }
+}
+
 function openRoomPanel(){
   updateRoomPanelState();
   updateRejoinButton();
@@ -3895,8 +4420,8 @@ function updateRoomPanelState(){
     box.style.display = "block";
     document.getElementById("currentRoomCode").textContent = MP.roomCode;
     const privacy = document.getElementById("currentRoomPrivacy");
-    privacy.textContent = MP.isPrivate ? "private" : "public";
-    privacy.className = "pill " + (MP.isPrivate ? "purple" : "green");
+    privacy.textContent = (MP.mode === "race" ? "race" : "co-op") + " · " + (MP.isPrivate ? "private" : "public");
+    privacy.className = "pill " + (MP.mode === "race" ? "amber" : "green");
   } else {
     box.style.display = "none";
   }
@@ -3909,7 +4434,9 @@ function renderRoomList(){
   const counts = {};
   if(typeof onlineUsers !== "undefined"){
     onlineUsers.forEach(u => {
-      if(u.room) counts[u.room] = (counts[u.room] || 0) + 1;
+      if(!u.room) return;
+      if((u.mode || "coop") !== selectedRoomMode) return;
+      counts[u.room] = (counts[u.room] || 0) + 1;
     });
   }
 
@@ -3924,14 +4451,14 @@ function renderRoomList(){
     const meta = document.createElement("div");
     meta.className = "meta";
     const n = counts[room.code] || 0;
-    meta.textContent = room.desc + " · " + n + " player" + (n === 1 ? "" : "s") + " online";
+    meta.textContent = room.desc + " · " + modeLabel(selectedRoomMode) + " · " + n + " player" + (n === 1 ? "" : "s") + " online";
     info.appendChild(title);
     info.appendChild(meta);
 
     const btn = document.createElement("button");
     btn.className = "gbtn";
-    btn.textContent = (MP.active && MP.roomCode === room.code) ? "Rejoin" : "Join";
-    btn.onclick = () => joinRoom(room.code, false);
+    btn.textContent = (MP.active && MP.roomCode === room.code && MP.mode === selectedRoomMode) ? "Rejoin" : "Join";
+    btn.onclick = () => joinRoom(room.code, false, selectedRoomMode);
 
     row.appendChild(info);
     row.appendChild(btn);
@@ -3947,17 +4474,18 @@ async function joinRoomFromInput(){
     return;
   }
   document.getElementById("roomError").textContent = "";
-  await joinRoom(code, !isPublicRoom(code));
+  await joinRoom(code, !isPublicRoom(code), selectedRoomMode);
 }
 
 function createPrivateRoom(){
   const code = "PVT-" + Math.random().toString(36).slice(2, 6).toUpperCase();
-  joinRoom(code, true);
+  joinRoom(code, true, selectedRoomMode);
 }
 
 function copyRoomLink(){
   if(!MP.active) return;
-  const link = location.origin + location.pathname + "?room=" + encodeURIComponent(MP.roomCode);
+  const link = location.origin + location.pathname + "?room=" + encodeURIComponent(MP.roomCode) +
+    "&mode=" + encodeURIComponent(MP.mode || "coop");
   const done = () => mpToast("Invite link copied — send it to a friend");
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(link).then(done).catch(() => prompt("Copy this invite link:", link));
@@ -3968,12 +4496,14 @@ function copyRoomLink(){
 
 /* ---------------- joining / leaving ---------------- */
 
-async function joinRoom(code, isPrivate = false){
+async function joinRoom(code, isPrivate = false, mode = selectedRoomMode){
   code = normalizeRoomCode(code);
   if(code.length < 3){
     mpToast("Invalid room code");
     return;
   }
+  mode = (mode === "race") ? "race" : "coop";
+  if(mode !== selectedRoomMode) setRoomMode(mode);
 
   /* Leaving first makes re-joining the same room rebuild from scratch. */
   leaveRoom(false);
@@ -3981,6 +4511,8 @@ async function joinRoom(code, isPrivate = false){
   MP.active = true;
   MP.roomCode = code;
   MP.isPrivate = !!isPrivate;
+  MP.mode = mode;
+  MP.race = null;
   MP.players.clear();
   MP.connected = false;
   MP.reconnectAttempts = 0;
@@ -3991,7 +4523,7 @@ async function joinRoom(code, isPrivate = false){
   MP.lastEmoteAt = 0;
 
   try{
-    localStorage.setItem("shnailLastRoom", JSON.stringify({ code: code, isPrivate: !!isPrivate, ts: Date.now() }));
+    localStorage.setItem("shnailLastRoom", JSON.stringify({ code: code, isPrivate: !!isPrivate, mode: mode, ts: Date.now() }));
   } catch(e){}
 
   /* Easy mode changes which enemies spawn, which would desync the
@@ -4005,6 +4537,10 @@ async function joinRoom(code, isPrivate = false){
   setMapSeed(seedFromRoom(code));
   lastSubmittedScore = 0;
 
+  if(MP.mode === "race"){
+    MP.race = createRaceState();
+  }
+
   updateMenuStatus();
   updateRoomPanelState();
   updateRoomHud();
@@ -4013,13 +4549,17 @@ async function joinRoom(code, isPrivate = false){
   startGame();
   closeRoomPanel();
 
-  mpToast((isPrivate ? "🔒 Private room " : "🌐 Joined room ") + code + " — same map seed for everyone");
+  mpToast((isPrivate ? "🔒 Private room " : "🌐 Joined room ") + code +
+    (MP.mode === "race" ? " — RACE MODE" : " — same map seed for everyone"));
   if(typeof retrackPresence === "function") retrackPresence();
   renderRoomList();
+  updateRejoinButton();
+  if(MP.mode === "race" && typeof loadRaceResults === "function") loadRaceResults();
 }
 
 function joinRoomChannel(code){
-  MP.channel = client.channel("shnail-room:" + code, {
+  const topicMode = (MP.mode === "race") ? "race" : "coop";
+  MP.channel = client.channel("shnail-room:" + code + ":" + topicMode, {
     config: {
       presence: { key: MP.sessionId },
       broadcast: { self: false }
@@ -4041,7 +4581,9 @@ function joinRoomChannel(code){
         biome: payload.biome || "",
         seen: performance.now(),
         emote: prev ? prev.emote : null,
-        emoteUntil: prev ? prev.emoteUntil : 0
+        emoteUntil: prev ? prev.emoteUntil : 0,
+        finished: !!payload.finished,
+        finishMs: payload.finishMs || 0
       });
     })
     .on("broadcast", { event: "bye" }, ({ payload }) => {
@@ -4086,6 +4628,14 @@ function joinRoomChannel(code){
       if(payload.y != null) p.y = payload.y;
       MP.players.set(payload.sid, p);
     })
+    .on("broadcast", { event: "finish" }, ({ payload }) => {
+      if(!payload || payload.sid === MP.sessionId) return;
+      if(!MP.race) return;
+      addRaceResult(payload.name || "Player", Number(payload.timeMs) || 0, payload.sid, false);
+      saveLocalRaceRecord(Number(payload.timeMs) || 0, payload.name || "Player");
+      renderRaceResults();
+      mpToast("🏁 " + (payload.name || "Player") + " finished in " + formatRaceTime(payload.timeMs));
+    })
     .on("presence", { event: "sync" }, () => {
       if(thisChannel !== MP.channel) return;
       const state = thisChannel.presenceState();
@@ -4111,7 +4661,8 @@ function joinRoomChannel(code){
             sid: MP.sessionId,
             user_id: (typeof currentUser !== "undefined" && currentUser) ? currentUser.id : null,
             name: myName(),
-            room: code
+            room: code,
+            mode: MP.mode
           });
         } catch(e){}
         broadcastPosition();
@@ -4146,6 +4697,8 @@ function broadcastPosition(){
         facing: player.facing,
         score: score,
         biome: currentBiome.name,
+        finished: !!(MP.race && MP.race.finished),
+        finishMs: (MP.race && MP.race.finished) ? Math.round(MP.race.finishMs) : 0,
         ts: Date.now()
       }
     });
@@ -4170,6 +4723,7 @@ function leaveRoom(showMenu = false){
   MP.connected = false;
   MP.reconnectAttempts = 0;
   MP.selfEmote = null;
+  MP.race = null;
   clearTimeout(MP.reconnectTimer);
   MP.players.clear();
   lastSubmittedScore = 0;
@@ -4528,7 +5082,7 @@ function renderFriends(){
     const buttons = [];
     buttons.push({ label: "Message", ghost: true, onClick: () => startDm(friendName) });
     if(isOnline && room){
-      buttons.push({ label: "Join", onClick: () => joinRoom(room, !isPublicRoom(room)) });
+      buttons.push({ label: "Join", onClick: () => joinRoom(room, !isPublicRoom(room), presence.mode || "coop") });
     }
     if(MP.active){
       buttons.push({ label: "Invite", ghost: true, onClick: () => inviteFriend(friendName) });
@@ -4725,7 +5279,12 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("pagehide", () => { maybeSubmitScore(true); });
 
   /* Deep link: ?room=CODE */
+  if(document.getElementById("modeCoopBtn")) setRoomMode(selectedRoomMode);
+
   const params = new URLSearchParams(location.search);
+  const modeParam = params.get("mode");
+  if(modeParam === "race" || modeParam === "coop") setRoomMode(modeParam);
+
   const roomParam = normalizeRoomCode(params.get("room"));
   if(roomParam){
     const input = document.getElementById("joinCodeInput");
