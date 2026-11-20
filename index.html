@@ -145,6 +145,107 @@ color:white;
 font-weight:bold;
 }
 
+.chatTab{ position:relative; }
+.tabBadge{
+  display:none;
+  background:#ed4245; color:#fff; border-radius:8px;
+  font-size:9px; line-height:14px; padding:0 5px; margin-left:3px;
+  font-weight:bold; vertical-align:middle;
+}
+.tabBadge.show{ display:inline-block; }
+
+/* ===== Discord-style DM view ===== */
+#chatBox.dmMode{ width:min(560px, 94vw); }
+
+#dmLayout{
+  display:none; flex:1; min-height:0; overflow:hidden;
+  font-family:monospace;
+}
+#dmLayout.open{ display:flex; }
+
+#dmSidebar{
+  width:136px; flex:0 0 136px; display:flex; flex-direction:column;
+  min-height:0; background:#1e1f22; border-right:1px solid #2b2d31;
+}
+#dmSidebarTop{ padding:6px; }
+#dmSearchInput{
+  width:100%; box-sizing:border-box; background:#111214; color:#dbdee1;
+  border:1px solid #2b2d31; border-radius:4px; padding:5px 6px;
+  font-family:monospace; font-size:10px;
+}
+#dmSearchInput:focus{ outline:1px solid #5865f2; }
+#dmConversations{ flex:1; min-height:0; overflow-y:auto; padding:4px; }
+
+.dmConvo{
+  display:flex; align-items:center; gap:6px; padding:5px 6px; margin-bottom:2px;
+  border-radius:5px; cursor:pointer; color:#b5bac1; font-size:11px;
+}
+.dmConvo:hover{ background:#2b2d31; color:#dbdee1; }
+.dmConvo.active{ background:#404249; color:#fff; }
+.dmAvatar{
+  width:22px; height:22px; flex:0 0 22px; border-radius:50%;
+  background:#5865f2; color:#fff; display:flex; align-items:center;
+  justify-content:center; font-size:10px; font-weight:bold;
+  text-transform:uppercase;
+}
+.dmConvoName{
+  flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.dmOnlineDot{ width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:#3ba55d; }
+.dmUnread{
+  background:#ed4245; color:#fff; font-size:9px; font-weight:bold;
+  border-radius:8px; padding:0 5px; line-height:14px;
+}
+.dmSectionLabel{
+  color:#949ba4; font-size:9px; letter-spacing:1px; text-transform:uppercase;
+  padding:7px 6px 3px;
+}
+.dmSidebarNotice{ color:#ffb4b4; font-size:10px; padding:4px 6px; line-height:1.4; }
+.dmSidebarEmpty{ color:#6d6f78; font-size:10px; padding:8px 6px; line-height:1.5; }
+
+#dmMain{
+  flex:1; min-width:0; display:flex; flex-direction:column;
+  background:#313338;
+}
+#dmThreadHeader{
+  height:34px; flex:0 0 34px; display:flex; align-items:center; gap:6px;
+  padding:0 10px; border-bottom:1px solid #26272b;
+  color:#f2f3f5; font-size:11px; font-weight:bold;
+  overflow:hidden; white-space:nowrap;
+}
+#dmThreadStatus{ font-size:9px; font-weight:normal; color:#949ba4; }
+#dmOuter{ flex:1; min-height:0; overflow-y:auto; }
+#dmMessages{ padding:8px; display:flex; flex-direction:column; gap:6px; }
+#dmMessages .chatBubble{
+  background:#2b2d31; border-left:none; border-radius:6px;
+  padding:6px 8px; margin:0;
+}
+#dmMessages .chatBubble.dmMine{ background:#243b2c; }
+#dmMessages .chatHeader{ font-size:10px; margin-bottom:2px; }
+#dmMessages .chatText{ font-size:12px; }
+#dmMessages .chatTime{ font-size:9px; margin-top:2px; }
+.dmEmpty{
+  color:#949ba4; font-size:11px; text-align:center;
+  padding:24px 10px; line-height:1.6;
+}
+
+#dmComposer{
+  flex:0 0 auto; display:flex; gap:5px; padding:6px;
+  background:#313338; border-top:1px solid #26272b;
+}
+#dmComposer input{
+  flex:1; min-width:0; background:#383a40; border:none; border-radius:5px;
+  padding:8px; color:#dbdee1; font-family:monospace; font-size:11px;
+}
+#dmComposer input:focus{ outline:1px solid #5865f2; }
+#dmComposer input:disabled{ opacity:.5; }
+#dmComposer button{
+  background:#5865f2; border:none; border-radius:5px; color:#fff;
+  padding:0 12px; cursor:pointer; font-family:monospace; font-size:13px;
+}
+#dmComposer button:hover{ background:#4752c4; }
+#dmComposer button:disabled{ background:#3a3c42; cursor:not-allowed; }
+
 #onlineCount{
 font-size:12px;
 color:#8cff8c;
@@ -173,21 +274,6 @@ padding:8px;
 background:#1d1d1d;
 }
 
-#dmControls {
-display:flex;
-gap:4px;
-margin-bottom:5px;
-}
-
-#dmSelect, #dmTarget {
-flex:1;
-padding:4px;
-background:#222;
-border:1px solid #555;
-color:white;
-font-family:monospace;
-font-size:11px;
-}
 
 #username,
 #chatInput,
@@ -460,6 +546,62 @@ background:#4CAF50;
 }
 .chatInvite:hover{ background:#2b5733; }
 
+/* ===== Live room roster / chat ===== */
+#mpRoster{
+  position:fixed; top:80px; left:15px; width:200px; max-height:calc(100vh - 100px);
+  display:none; flex-direction:column; overflow:hidden;
+  background:rgba(9,17,9,.92); border:1px solid #2ed84b; border-radius:10px;
+  font-family:monospace; color:#cfeccf; z-index:890;
+  box-shadow:0 0 14px rgba(46,216,75,.2);
+}
+#mpRoster.open{ display:flex; }
+#mpRosterHeader{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:6px 9px; background:#122412; border-bottom:1px solid #244a24;
+  font-size:10px; letter-spacing:1px; color:#7CFF7C; font-weight:bold;
+}
+#mpConnDot{ font-size:11px; color:#ed4245; }
+#mpRosterList{ overflow-y:auto; max-height:190px; padding:4px; }
+.mpRunner{
+  display:flex; align-items:center; gap:6px; padding:4px 5px;
+  border-radius:5px; font-size:11px;
+}
+.mpRunner.me{ background:#1b3a1b; }
+.mpRunner .mpDot{ width:8px; height:8px; border-radius:50%; flex:0 0 8px; }
+.mpRunner .mpName{
+  flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.mpRunner .mpScore{ color:#ffd54f; font-weight:bold; }
+.mpRunnerMeta{ font-size:9px; opacity:.65; padding:0 5px 4px 19px; margin-top:-2px; }
+#mpChatLog{
+  max-height:84px; overflow-y:auto; border-top:1px solid #244a24;
+  padding:5px 6px; font-size:10px; line-height:1.45; color:#cfeccf;
+}
+.mpChatLine b{ font-weight:bold; }
+.mpChatLine.mine{ color:#aeffae; }
+.mpChatMuted{ opacity:.5; }
+.mpChatSystem{ color:#ffca28; font-style:italic; }
+#mpChatRow{
+  display:flex; gap:4px; padding:5px; border-top:1px solid #244a24;
+}
+#mpChatRow input{
+  flex:1; min-width:0; background:#0b140b; border:1px solid #2f5a2f;
+  border-radius:4px; color:#e6ffe6; font-family:monospace; font-size:10px; padding:5px;
+}
+#mpChatRow input:focus{ outline:1px solid #2ed84b; }
+#mpChatRow button{
+  background:#28a745; border:none; color:#fff; border-radius:4px;
+  cursor:pointer; font-family:monospace; font-size:12px; padding:0 8px;
+}
+#mpChatRow button:hover{ background:#38c756; }
+#mpEmoteRow{ display:flex; gap:4px; padding:0 5px 6px; }
+#mpEmoteRow button{
+  flex:1; background:#173017; border:1px solid #2f5a2f; color:#fff;
+  border-radius:4px; cursor:pointer; font-size:12px; padding:3px 0;
+  font-family:monospace;
+}
+#mpEmoteRow button:hover{ background:#2b5733; }
+
 #pauseMenu{
   position:fixed; inset:0; display:none; align-items:center; justify-content:center;
   background:rgba(0,0,0,.45); z-index:940; font-family:monospace;
@@ -500,7 +642,7 @@ background:#4CAF50;
   </div>
   <div id="chatTabs" style="display:none;">
     <button class="chatTab active" id="tabGlobal" onclick="switchTab('global')">Global</button>
-    <button class="chatTab" id="tabDM" onclick="switchTab('dm')">DMs</button>
+    <button class="chatTab" id="tabDM" onclick="switchTab('dm')">DMs<span id="dmBadge" class="tabBadge">0</span></button>
     <button class="chatTab" id="tabFriends" onclick="switchTab('friends')">Friends</button>
   </div>
   <div id="resizeHandle"></div>
@@ -515,6 +657,27 @@ background:#4CAF50;
   </div>
 
   <div id="messages" style="display:none;"></div>
+
+  <div id="dmLayout">
+    <div id="dmSidebar">
+      <div id="dmSidebarTop">
+        <input id="dmSearchInput" placeholder="Find or start a DM..." autocomplete="off">
+      </div>
+      <div id="dmConversations"></div>
+    </div>
+    <div id="dmMain">
+      <div id="dmThreadHeader">
+        <span id="dmThreadName">Direct Messages</span>
+        <span id="dmThreadStatus">select a conversation</span>
+      </div>
+      <div id="dmOuter"><div id="dmMessages"></div></div>
+      <div id="dmComposer">
+        <input id="dmInput" placeholder="Message" autocomplete="off" disabled>
+        <button id="dmSendButton" onclick="sendDirectMessage()" disabled>➜</button>
+      </div>
+    </div>
+  </div>
+
   <div id="friendsPanel" style="display:none;">
     <input id="friendSearch" class="ginput" placeholder="Search username..." autocomplete="off">
     <div id="friendSearchResults"></div>
@@ -524,12 +687,6 @@ background:#4CAF50;
     <div id="friendList"><div class="empty">No friends yet — search for a player above.</div></div>
   </div>
   <div id="chatBottom" style="display:none;">
-    <div id="dmControls" style="display:none;">
-      <select id="dmSelect" onchange="syncDmTarget(this.value)">
-        <option value="">Select Online User...</option>
-      </select>
-      <input id="dmTarget" placeholder="Or type username..." oninput="syncDmSelect(this.value)">
-    </div>
     <input id="username" placeholder="Name">
     <input id="chatInput" placeholder="Type a message...">
     <button id="sendButton" onclick="sendMessage()">➜</button>
@@ -549,6 +706,26 @@ background:#4CAF50;
 
 <div id="roomHud"></div>
 <div id="mpFeed"></div>
+
+<div id="mpRoster">
+  <div id="mpRosterHeader">
+    <span id="mpRosterTitle">RUNNERS</span>
+    <span id="mpConnDot" title="Connecting...">●</span>
+  </div>
+  <div id="mpRosterList"></div>
+  <div id="mpChatLog"><div class="mpChatLine mpChatMuted">Room chat — say hi to your runners.</div></div>
+  <div id="mpChatRow">
+    <input id="mpChatInput" maxlength="120" placeholder="Message room..." autocomplete="off">
+    <button id="mpChatSend" onclick="sendMpChat()">➜</button>
+  </div>
+  <div id="mpEmoteRow">
+    <button onclick="sendEmote('👋')">👋</button>
+    <button onclick="sendEmote('🔥')">🔥</button>
+    <button onclick="sendEmote('GG')">GG</button>
+    <button onclick="sendEmote('😂')">😂</button>
+    <button onclick="sendEmote('💀')">💀</button>
+  </div>
+</div>
 
 <div id="pauseMenu">
   <div class="pauseCard">
@@ -573,8 +750,9 @@ background:#4CAF50;
     <h3>PUBLIC ROOMS · SAME MAP FOR EVERYONE</h3>
     <div id="publicRoomList"></div>
     <h3>PRIVATE ROOM</h3>
-    <div class="rowFlex" style="margin-bottom:8px;">
+    <div class="rowFlex" style="margin-bottom:8px; flex-wrap:wrap;">
       <button class="gbtn" onclick="createPrivateRoom()">＋ Create Private Room</button>
+      <button id="rejoinLastButton" class="gbtn ghost" style="display:none;" onclick="rejoinLastRoom()">↩ Rejoin</button>
     </div>
     <div class="rowFlex">
       <input id="joinCodeInput" class="ginput" style="margin-bottom:0;text-transform:uppercase;" placeholder="Enter room code..." maxlength="12" autocomplete="off">
@@ -2162,8 +2340,11 @@ function draw(){
   }
 
   if(typeof drawRemotePlayers === "function") drawRemotePlayers();
+  if(typeof drawSelfEmote === "function") drawSelfEmote();
 
   ctx.restore();
+
+  if(typeof drawRemoteIndicators === "function") drawRemoteIndicators();
 
   ctx.fillStyle="green";
   ctx.fillText("#shnails4life",10,20);
@@ -2249,9 +2430,14 @@ const chatTabs = document.getElementById("chatTabs");
 const authError = document.getElementById("authError");
 const logoutBtn = document.getElementById("logoutBtn");
 const usernameInput = document.getElementById("username");
-const dmControls = document.getElementById("dmControls");
-const dmSelect = document.getElementById("dmSelect");
-const dmTarget = document.getElementById("dmTarget");
+
+const dmLayout = document.getElementById("dmLayout");
+const dmMessages = document.getElementById("dmMessages");
+const dmInput = document.getElementById("dmInput");
+const dmSendButton = document.getElementById("dmSendButton");
+const dmSearchInput = document.getElementById("dmSearchInput");
+const dmThreadName = document.getElementById("dmThreadName");
+const dmThreadStatus = document.getElementById("dmThreadStatus");
 
 let currentUser = null;
 let canSend = true;
@@ -2261,6 +2447,18 @@ let cachedMessages = [];
 let onlineUsers = new Map();
 let bulkLoading = false;
 let messagesLoadedFor = null;
+
+/* Direct message state */
+let currentDmPartner = null;
+const dmThreads = new Map();      // lowercase partner name -> thread
+let DM_HAS_TARGET_COLUMN = null;  // null = unknown, true/false after probe
+let dmUserResults = [];           // registered players matching the search
+let dmSearchSeq = 0;              // guards against out-of-order searches
+let dmSearchTimer = null;
+let dmSearchNotice = "";
+let dmDirectory = [];             // registered accounts shown under "Players"
+let dmDirectoryLoadedAt = 0;
+const DM_PREFIX = "[[dm:";
 
 usernameInput.disabled = true;
 
@@ -2356,6 +2554,7 @@ function showChatUI() {
   loadMessages();
   setupPresence();
   if(typeof loadFriends === "function") loadFriends();
+  switchTab(currentTab);
 }
 
 function showAuthUI() {
@@ -2375,6 +2574,20 @@ function showAuthUI() {
   loadedMsgIds.clear();
   messages.innerHTML = "";
 
+  /* Reset the DM view. */
+  if(typeof chatBox !== "undefined" && chatBox) chatBox.classList.remove("dmMode");
+  dmLayout.style.display = "none";
+  dmLayout.classList.remove("open");
+  dmMessages.innerHTML = "";
+  dmThreads.clear();
+  currentDmPartner = null;
+  dmUserResults = [];
+  dmSearchNotice = "";
+  dmDirectory = [];
+  dmDirectoryLoadedAt = 0;
+  dmSearchSeq++;
+  updateDmBadge();
+
   const accountLine = document.getElementById("menuAccount");
   if(accountLine) accountLine.textContent = "Not signed in · chat, friends & leaderboard need login";
 }
@@ -2384,10 +2597,22 @@ function switchTab(tab) {
   document.getElementById("tabGlobal").className = "chatTab" + (tab === "global" ? " active" : "");
   document.getElementById("tabDM").className = "chatTab" + (tab === "dm" ? " active" : "");
   document.getElementById("tabFriends").className = "chatTab" + (tab === "friends" ? " active" : "");
-  dmControls.style.display = tab === "dm" ? "flex" : "none";
 
   const friendsPanel = document.getElementById("friendsPanel");
-  if(tab === "friends"){
+  const isDm = tab === "dm";
+  if(typeof chatBox !== "undefined" && chatBox) chatBox.classList.toggle("dmMode", isDm);
+  dmLayout.style.display = isDm ? "flex" : "none";
+  dmLayout.classList.toggle("open", isDm);
+
+  if(isDm){
+    messages.style.display = "none";
+    chatBottom.style.display = "none";
+    friendsPanel.style.display = "none";
+    renderDmSidebar();
+    renderDmThread();
+    updateDmBadge();
+    loadDmDirectory();
+  } else if(tab === "friends"){
     friendsPanel.style.display = "block";
     messages.style.display = "none";
     chatBottom.style.display = "none";
@@ -2400,49 +2625,459 @@ function switchTab(tab) {
   }
 }
 
-function syncDmTarget(val) {
-  dmTarget.value = val;
+/* ============================================================
+   DM CORE
+   DMs are stored in the `messages` table. If the table has a
+   `target_user` column we use it; otherwise we fall back to an
+   encoded body ("[[dm:Name]] text") so DMs work on the existing
+   schema without a migration.
+   ============================================================ */
+
+function encodeDmMessage(target, text){
+  const cleanTarget = String(target || "").replace(/[\]\[:\r\n]/g, "").trim().slice(0, 40);
+  return DM_PREFIX + cleanTarget + "]] " + text;
 }
 
-function syncDmSelect(val) {
-  dmSelect.value = val;
+function parseDmMessage(text){
+  if(typeof text !== "string" || !text.startsWith(DM_PREFIX)) return null;
+  const end = text.indexOf("]]");
+  if(end < 0) return null;
+  const target = text.slice(DM_PREFIX.length, end).trim();
+  if(!target) return null;
+  return { target, body: text.slice(end + 2).replace(/^\s+/, "") };
 }
+
+function normalizeStoredMessage(row){
+  const parsed = (!row.target_user) ? parseDmMessage(row.message) : null;
+  return {
+    username: row.username,
+    message: parsed ? parsed.body : row.message,
+    id: row.id,
+    created_at: row.created_at,
+    target_user: row.target_user || (parsed ? parsed.target : null)
+  };
+}
+
+function isDmInvolvingMe(row){
+  if(!row.target_user) return false;
+  const me = chatDisplayName().toLowerCase();
+  const sender = String(row.username || "").toLowerCase();
+  const target = String(row.target_user || "").toLowerCase();
+  return sender === me || target === me;
+}
+
+function isMissingTargetColumnError(error){
+  if(!error) return false;
+  return error.code === "42703" ||
+         error.code === "PGRST204" ||
+         /target_user/i.test(error.message || "");
+}
+
+async function detectDmColumn(){
+  try{
+    const { error } = await client.from("messages").select("target_user").limit(1);
+    if(!error) DM_HAS_TARGET_COLUMN = true;
+    else if(isMissingTargetColumnError(error)) DM_HAS_TARGET_COLUMN = false;
+  } catch(e){ /* keep unknown; the send path retries without the column */ }
+}
+
+/* ---------------- conversation list ---------------- */
+
+function findPresenceByName(name){
+  const wanted = String(name || "").toLowerCase();
+  let found = null;
+  onlineUsers.forEach(u => {
+    if(u && u.username && String(u.username).toLowerCase() === wanted) found = u;
+  });
+  return found;
+}
+
+function noteDmThread(row, incrementUnread){
+  const me = chatDisplayName().toLowerCase();
+  const sender = String(row.username || "").toLowerCase();
+  const partner = sender === me ? row.target_user : row.username;
+  if(!partner) return null;
+
+  const key = String(partner).toLowerCase();
+  let thread = dmThreads.get(key);
+  if(!thread){
+    thread = { name: partner, lastText: "", lastAt: 0, unread: 0 };
+    dmThreads.set(key, thread);
+  }
+  thread.lastText = row.message || "";
+  const ts = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+  if(!isNaN(ts) && ts >= (thread.lastAt || 0)) thread.lastAt = ts;
+  if(incrementUnread) thread.unread = (thread.unread || 0) + 1;
+  return thread;
+}
+
+function rebuildDmThreads(){
+  dmThreads.clear();
+  cachedMessages.forEach(m => { if(m.target_user) noteDmThread(m, false); });
+  if(currentDmPartner && !dmThreads.has(currentDmPartner.toLowerCase())){
+    dmThreads.set(currentDmPartner.toLowerCase(), { name: currentDmPartner, lastText: "", lastAt: 0, unread: 0 });
+  }
+}
+
+function updateDmBadge(){
+  let total = 0;
+  dmThreads.forEach(t => { total += (t.unread || 0); });
+  const badge = document.getElementById("dmBadge");
+  if(!badge) return;
+  badge.textContent = total > 9 ? "9+" : String(total);
+  badge.classList.toggle("show", total > 0);
+}
+
+function startDm(name){
+  const clean = String(name || "").replace(/[:\[\]\r\n]/g, "").trim();
+  if(!clean) return;
+  openDm(clean);
+  if(dmSearchInput) dmSearchInput.value = "";
+  renderDmSidebar();
+}
+
+function openDm(name){
+  const clean = String(name || "").replace(/[:\[\]\r\n]/g, "").trim();
+  if(!clean) return;
+
+  /* If the chat is collapsed, open it before showing the thread. */
+  if(typeof minimized !== "undefined" && minimized){
+    const minBtn = document.getElementById("minimizeBtn");
+    if(minBtn) minBtn.click();
+  }
+
+  currentDmPartner = clean;
+  const key = clean.toLowerCase();
+  if(!dmThreads.has(key)){
+    dmThreads.set(key, { name: clean, lastText: "", lastAt: 0, unread: 0 });
+  } else {
+    dmThreads.get(key).unread = 0;
+  }
+
+  if(currentTab !== "dm"){
+    switchTab("dm");
+  } else {
+    renderDmSidebar();
+    renderDmThread();
+    updateDmBadge();
+  }
+  if(dmInput) dmInput.focus();
+}
+
+function makeDmSidebarRow(name, opts = {}){
+  const row = document.createElement("div");
+  row.className = "dmConvo" + (currentDmPartner && currentDmPartner.toLowerCase() === String(name).toLowerCase() ? " active" : "");
+
+  const avatar = document.createElement("div");
+  avatar.className = "dmAvatar";
+  avatar.textContent = String(name || "?").slice(0, 1);
+
+  const label = document.createElement("div");
+  label.className = "dmConvoName";
+  label.textContent = name;
+
+  row.appendChild(avatar);
+  row.appendChild(label);
+
+  if(findPresenceByName(name)){
+    const dot = document.createElement("span");
+    dot.className = "dmOnlineDot";
+    row.appendChild(dot);
+  }
+
+  if(opts.unread > 0){
+    const badge = document.createElement("span");
+    badge.className = "dmUnread";
+    badge.textContent = opts.unread > 9 ? "9+" : String(opts.unread);
+    row.appendChild(badge);
+  }
+
+  row.onclick = () => selectDmFromSidebar(name);
+  return row;
+}
+
+function dmSectionLabel(text){
+  const el = document.createElement("div");
+  el.className = "dmSectionLabel";
+  el.textContent = text;
+  return el;
+}
+
+function selectDmFromSidebar(name){
+  if(dmSearchInput) dmSearchInput.value = "";
+  dmUserResults = [];
+  dmSearchNotice = "";
+  dmSearchSeq++;
+  clearTimeout(dmSearchTimer);
+  openDm(name);
+  renderDmSidebar();
+}
+
+function renderDmSidebar(){
+  const list = document.getElementById("dmConversations");
+  if(!list) return;
+
+  const query = (dmSearchInput && dmSearchInput.value ? dmSearchInput.value : "").trim();
+  const q = query.toLowerCase();
+  list.innerHTML = "";
+
+  const threads = [...dmThreads.values()].sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0));
+  const matchingThreads = q
+    ? threads.filter(t => String(t.name).toLowerCase().includes(q))
+    : threads;
+
+  if(q && dmSearchNotice){
+    const notice = document.createElement("div");
+    notice.className = "dmSidebarNotice";
+    notice.textContent = dmSearchNotice;
+    list.appendChild(notice);
+  }
+
+  if(q){
+    /* Registered players first, so typing a letter shows real users only. */
+    if(dmUserResults.length){
+      list.appendChild(dmSectionLabel("Players"));
+      dmUserResults.forEach(user => {
+        list.appendChild(makeDmSidebarRow(user.username));
+      });
+    }
+
+    if(matchingThreads.length){
+      list.appendChild(dmSectionLabel("Conversations"));
+      matchingThreads.forEach(t => {
+        list.appendChild(makeDmSidebarRow(t.name, { unread: t.unread }));
+      });
+    }
+
+    if(!dmUserResults.length && !matchingThreads.length && !dmSearchNotice){
+      const empty = document.createElement("div");
+      empty.className = "dmSidebarEmpty";
+      empty.textContent = "No registered player found matching \u201c" + query + "\u201d.";
+      list.appendChild(empty);
+    }
+  } else {
+    threads.forEach(t => {
+      list.appendChild(makeDmSidebarRow(t.name, { unread: t.unread }));
+    });
+
+    /* Show the registered-player directory so real accounts are visible
+       without typing, and exclude anyone already listed as a conversation. */
+    const listed = new Set(threads.map(t => String(t.name).toLowerCase()));
+    const directory = dmDirectory.filter(u => !listed.has(String(u.username).toLowerCase()));
+
+    if(directory.length){
+      list.appendChild(dmSectionLabel("Players"));
+      directory.slice(0, 40).forEach(user => {
+        list.appendChild(makeDmSidebarRow(user.username));
+      });
+    }
+
+    if(!threads.length && !directory.length){
+      const empty = document.createElement("div");
+      empty.className = "dmSidebarEmpty";
+      empty.textContent = "No registered players yet. Registered accounts appear here automatically.";
+      list.appendChild(empty);
+    }
+  }
+}
+
+/* Registered-player directory. Sourced only from `profiles`, which mirrors
+   the auth accounts (email sign-ups) — legacy free-text chat names are NOT
+   players and must never appear here. */
+async function loadDmDirectory(force = false){
+  if(!currentUser) return;
+  if(!force && Date.now() - dmDirectoryLoadedAt < 30000) return;
+
+  let data = null;
+  try{
+    const res = await client.from("profiles")
+      .select("id, username")
+      .order("username", { ascending: true })
+      .limit(50);
+    data = res.data;
+  } catch(e){ /* leave the directory empty */ }
+
+  const me = chatDisplayName().toLowerCase();
+  const seen = new Set();
+  dmDirectory = (data || [])
+    .filter(p => {
+      if(!p || !p.username) return false;
+      const key = String(p.username).toLowerCase();
+      if(key === me || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map(p => ({ id: p.id, username: p.username }));
+
+  dmDirectoryLoadedAt = Date.now();
+  renderDmSidebar();
+}
+
+/* Only registered accounts are searchable: `profiles` has one row per
+   auth user (see supabase_schema.sql for the backfill). */
+async function searchRegisteredUsers(rawQuery){
+  const query = String(rawQuery || "").trim();
+  if(!query){
+    dmUserResults = [];
+    dmSearchSeq++;
+    renderDmSidebar();
+    return [];
+  }
+
+  const seq = ++dmSearchSeq;
+  const q = query.toLowerCase();
+  const me = chatDisplayName().toLowerCase();
+
+  let data = null;
+  let error = null;
+
+  try{
+    const res = await client.from("profiles")
+      .select("id, username")
+      .ilike("username", "%" + query + "%")
+      .limit(12);
+    data = res.data;
+    error = res.error;
+  } catch(e){
+    error = e;
+  }
+
+  /* Ignore a response that arrived after a newer keystroke. */
+  if(seq !== dmSearchSeq) return dmUserResults;
+
+  if(error){
+    dmUserResults = [];
+    dmSearchNotice = "Player search unavailable.";
+    renderDmSidebar();
+    return [];
+  }
+
+  const found = new Map();
+  (data || []).forEach(p => {
+    if(!p || !p.username) return;
+    const key = String(p.username).toLowerCase();
+    if(key === me || found.has(key)) return;
+    found.set(key, { id: p.id, username: p.username });
+  });
+
+  dmUserResults = [...found.values()]
+    .sort((a, b) => {
+      const aStarts = a.username.toLowerCase().startsWith(q) ? 0 : 1;
+      const bStarts = b.username.toLowerCase().startsWith(q) ? 0 : 1;
+      if(aStarts !== bStarts) return aStarts - bStarts;
+      return a.username.localeCompare(b.username);
+    })
+    .slice(0, 12);
+
+  dmSearchNotice = "";
+  renderDmSidebar();
+  return dmUserResults;
+}
+
+function setDmComposerEnabled(enabled){
+  if(dmInput) dmInput.disabled = !enabled;
+  if(dmSendButton) dmSendButton.disabled = !enabled;
+}
+
+function scrollDm(){
+  const outer = document.getElementById("dmOuter");
+  if(outer) outer.scrollTop = outer.scrollHeight;
+}
+
+function dmSystemNotice(text){
+  if(currentTab === "dm"){
+    appendMessageElement("🟢 SYSTEM", text, null, null, dmMessages);
+    scrollDm();
+  } else {
+    appendMessageElement("🟢 SYSTEM", text, null, null, messages);
+    messages.scrollTop = messages.scrollHeight;
+  }
+}
+
+/* ---------------- rendering ---------------- */
 
 function renderMessages() {
+  if(currentTab === "dm"){ renderDmThread(); return; }
+
   messages.innerHTML = "";
-  const currentUsername = usernameInput.value.trim();
   const seen = new Set();
 
   cachedMessages.forEach(m => {
-    /* Defensive de-dupe: the same message id must never render twice,
-       even if history reload and realtime both delivered it. */
+    if(m.target_user) return;
     if(m.id){
       if(seen.has(m.id)) return;
       seen.add(m.id);
     }
-
-    const isDM = !!m.target_user;
-    
-    if (currentTab === "global") {
-      if (!isDM) {
-        appendMessageElement(m.username, m.message, m.created_at, null);
-      }
-    } else if (currentTab === "dm") {
-      if (isDM && (m.username === currentUsername || m.target_user === currentUsername)) {
-        appendMessageElement(m.username, m.message, m.created_at, m.target_user);
-      }
-    }
+    appendMessageElement(m.username, m.message, m.created_at, null, messages);
   });
 
   messages.scrollTop = messages.scrollHeight;
 }
 
-function appendMessageElement(user, text, createdAt = null, targetUser = null) {
+function renderDmThread(){
+  if(!dmMessages) return;
+  dmMessages.innerHTML = "";
+
+  if(!currentDmPartner){
+    if(dmThreadName) dmThreadName.textContent = "Direct Messages";
+    if(dmThreadStatus){
+      dmThreadStatus.textContent = "select a conversation";
+      dmThreadStatus.style.color = "#949ba4";
+    }
+    setDmComposerEnabled(false);
+
+    const empty = document.createElement("div");
+    empty.className = "dmEmpty";
+    empty.textContent = "Pick a conversation on the left, or type a username to start a new DM.";
+    dmMessages.appendChild(empty);
+    return;
+  }
+
+  const me = chatDisplayName().toLowerCase();
+  const partnerLower = currentDmPartner.toLowerCase();
+
+  if(dmThreadName) dmThreadName.textContent = "@" + currentDmPartner;
+  const presence = findPresenceByName(currentDmPartner);
+  if(dmThreadStatus){
+    dmThreadStatus.textContent = presence ? "● online" : "offline";
+    dmThreadStatus.style.color = presence ? "#3ba55d" : "#949ba4";
+  }
+  setDmComposerEnabled(true);
+
+  const seen = new Set();
+  cachedMessages.forEach(m => {
+    if(!m.target_user) return;
+    const sender = String(m.username || "").toLowerCase();
+    const target = String(m.target_user || "").toLowerCase();
+    const involved = (target === partnerLower && sender === me) || (sender === partnerLower && target === me);
+    if(!involved) return;
+    if(m.id){
+      if(seen.has(m.id)) return;
+      seen.add(m.id);
+    }
+    appendMessageElement(m.username, m.message, m.created_at, m.target_user, dmMessages, sender === me);
+  });
+
+  if(!dmMessages.childElementCount){
+    const empty = document.createElement("div");
+    empty.className = "dmEmpty";
+    empty.textContent = "This is the beginning of your direct messages with " + currentDmPartner + ".";
+    dmMessages.appendChild(empty);
+  }
+
+  scrollDm();
+}
+
+function appendMessageElement(user, text, createdAt = null, targetUser = null, container = null, mine = false) {
+    const host = container || messages;
     const bubble = document.createElement("div");
     bubble.className = "chatBubble";
 
     if (targetUser) {
         bubble.classList.add("dmBubble");
+    }
+    if (mine) {
+        bubble.classList.add("dmMine");
     }
 
     if (user === "🟢 SYSTEM") {
@@ -2459,7 +3094,9 @@ function appendMessageElement(user, text, createdAt = null, targetUser = null) {
         }
 
         if (targetUser) {
-            header.textContent = `🔒 Direct Message (${displayUser} ➔ ${targetUser}):`;
+            /* Discord-style thread: the conversation header already shows
+               who you are talking to, so bubbles just show the sender. */
+            header.textContent = displayUser;
         } else {
             header.textContent = displayUser;
         }
@@ -2493,78 +3130,150 @@ function appendMessageElement(user, text, createdAt = null, targetUser = null) {
         bubble.appendChild(time);
     }
 
-    messages.appendChild(bubble);
+    host.appendChild(bubble);
 }
 
 function addMessage(user, text, id = null, createdAt = null, targetUser = null) {
     if (id && loadedMsgIds.has(id)) return;
     if (id) loadedMsgIds.add(id);
 
-    cachedMessages.push({ username: user, message: text, id, created_at: createdAt, target_user: targetUser });
+    const row = { username: user, message: text, id, created_at: createdAt, target_user: targetUser || null };
+
+    /* Direct messages are only cached by the two people involved. */
+    if (row.target_user && !isDmInvolvingMe(row)) return;
+
+    cachedMessages.push(row);
     if(cachedMessages.length > 500) cachedMessages.splice(0, cachedMessages.length - 500);
+
+    if (row.target_user) {
+        const me = chatDisplayName().toLowerCase();
+        const sender = String(row.username || "").toLowerCase();
+        const partner = sender === me ? row.target_user : row.username;
+        const isMine = sender === me;
+        const isOpen = currentTab === "dm" && currentDmPartner &&
+                       currentDmPartner.toLowerCase() === String(partner).toLowerCase();
+
+        noteDmThread(row, !isMine && !isOpen && !bulkLoading);
+
+        if (bulkLoading) return;
+
+        if (isOpen) {
+            appendMessageElement(row.username, row.message, row.created_at, row.target_user, dmMessages, isMine);
+            scrollDm();
+            renderDmSidebar();
+        } else if (!isMine) {
+            if (typeof mpToast === "function") mpToast("💬 DM from " + partner);
+        }
+
+        renderDmSidebar();
+        updateDmBadge();
+        return;
+    }
 
     /* During a history rebuild the whole list is rendered once at the end. */
     if(bulkLoading) return;
-    
-    const currentUsername = usernameInput.value.trim();
-    const isDM = !!targetUser;
 
-    if (currentTab === "global" && !isDM) {
-        appendMessageElement(user, text, createdAt, null);
-        messages.scrollTop = messages.scrollHeight;
-    } else if (currentTab === "dm" && isDM && (user === currentUsername || targetUser === currentUsername)) {
-        appendMessageElement(user, text, createdAt, targetUser);
+    if (currentTab === "global") {
+        appendMessageElement(row.username, row.message, row.created_at, null, messages);
         messages.scrollTop = messages.scrollHeight;
     }
 }
 
+/* ---------------- sending ---------------- */
+
+async function deliverMessage(target, text){
+    if(!currentUser || !target || !text) return false;
+
+    const cleanTarget = String(target).replace(/[\]\[:\r\n]/g, "").trim().slice(0, 40);
+    if(!cleanTarget) return false;
+
+    const username = chatDisplayName();
+    const useColumn = DM_HAS_TARGET_COLUMN !== false;
+
+    /* If the column is known to be missing, encode the recipient in the
+       body from the start instead of making a doomed first insert. */
+    const payload = useColumn
+        ? { username, message: text, target_user: cleanTarget }
+        : { username, message: encodeDmMessage(cleanTarget, text) };
+
+    let res = await client.from("messages").insert([payload]).select();
+
+    /* Older projects have no target_user column — retry with the
+       encoded body immediately instead of surfacing a database error. */
+    if(res.error && useColumn && isMissingTargetColumnError(res.error)){
+        DM_HAS_TARGET_COLUMN = false;
+        res = await client.from("messages").insert([{
+            username,
+            message: encodeDmMessage(cleanTarget, text)
+        }]).select();
+    }
+
+    if(res.error){
+        dmSystemNotice("Failed to send DM: " + res.error.message);
+        return false;
+    }
+
+    const raw = (res.data && res.data[0]) || { id: null, created_at: new Date().toISOString() };
+    const id = raw.id != null ? raw.id : ("local-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6));
+    addMessage(raw.username || username, text, id, raw.created_at, cleanTarget);
+    return true;
+}
+
+async function sendDirectMessage(){
+    if(!currentUser) return;
+    if(!currentDmPartner){
+        dmSystemNotice("Choose a conversation first.");
+        return;
+    }
+
+    const text = (dmInput && dmInput.value ? dmInput.value : "").trim();
+    if(!text) return;
+
+    if(dmInput) dmInput.value = "";
+    await deliverMessage(currentDmPartner, text);
+    if(dmInput) dmInput.focus();
+}
+
 async function sendMessage(){
     if(!currentUser) return;
-    let username = usernameInput.value.trim();
-    let text = document.getElementById("chatInput").value.trim();
+    const input = document.getElementById("chatInput");
+    let text = input.value.trim();
 
-    if(username === "" || text === "") return;
+    if(text === "") return;
     if(!canSend) return;
 
-    let targetUser = null;
-
-    if (currentTab === "dm") {
-        targetUser = dmTarget.value.trim() || dmSelect.value;
-        if (!targetUser) {
-            appendMessageElement("🟢 SYSTEM", "Please select or type a recipient username to DM.");
-            messages.scrollTop = messages.scrollHeight;
-            return;
-        }
-    } else if (text.startsWith("/dm ")) {
+    /* Slash command support from the global tab. */
+    if (text.startsWith("/dm ")) {
         const parts = text.split(" ");
         if (parts.length >= 3) {
-            targetUser = parts[1];
-            text = parts.slice(2).join(" ");
+            const target = parts[1];
+            const body = parts.slice(2).join(" ");
+            input.value = "";
+            await deliverMessage(target, body);
+            if(typeof mpToast === "function") mpToast("DM sent to " + target);
         } else {
-            appendMessageElement("🟢 SYSTEM", "Invalid DM format. Use: /dm username message");
+            appendMessageElement("🟢 SYSTEM", "Invalid DM format. Use: /dm username message", null, null, messages);
             messages.scrollTop = messages.scrollHeight;
-            return;
         }
+        return;
     }
 
     canSend = false;
     const sendButton = document.getElementById("sendButton");
     sendButton.disabled = true;
+    input.value = "";
 
-    document.getElementById("chatInput").value = "";
-
-    const payload = { username: username, message: text };
-    if (targetUser) {
-        payload.target_user = targetUser;
-    }
-
-    const { data, error } = await client.from("messages").insert([payload]).select();
+    const { data, error } = await client.from("messages").insert([{
+        username: chatDisplayName(),
+        message: text
+    }]).select();
 
     if (error) {
-        appendMessageElement("🟢 SYSTEM", "Failed to send message: " + error.message);
+        appendMessageElement("🟢 SYSTEM", "Failed to send message: " + error.message, null, null, messages);
         messages.scrollTop = messages.scrollHeight;
     } else if (data && data.length > 0) {
-        addMessage(data[0].username, data[0].message, data[0].id, data[0].created_at, data[0].target_user);
+        const row = normalizeStoredMessage(data[0]);
+        addMessage(row.username, row.message, row.id, row.created_at, row.target_user);
     }
 
     setTimeout(() => {
@@ -2572,6 +3281,8 @@ async function sendMessage(){
         sendButton.disabled = false;
     }, 1000);
 }
+
+/* ---------------- history ---------------- */
 
 async function loadMessages(force = false){
   if(!currentUser) return;
@@ -2584,7 +3295,7 @@ async function loadMessages(force = false){
   const { data, error } = await client.from("messages")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(200);
 
   if(error){
     console.warn("Could not load chat history:", error.message);
@@ -2596,16 +3307,74 @@ async function loadMessages(force = false){
   cachedMessages = [];
   loadedMsgIds.clear();
   bulkLoading = true;
-  (data || []).slice().reverse().forEach(m => {
+  (data || []).slice().reverse().forEach(raw => {
+    const m = normalizeStoredMessage(raw);
     addMessage(m.username, m.message, m.id, m.created_at, m.target_user);
   });
   bulkLoading = false;
+
+  rebuildDmThreads();
   renderMessages();
+  renderDmSidebar();
+  updateDmBadge();
 }
 
 client.channel("chat-room").on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
-  addMessage(payload.new.username, payload.new.message, payload.new.id, payload.new.created_at, payload.new.target_user);
+  const row = normalizeStoredMessage(payload.new);
+  addMessage(row.username, row.message, row.id, row.created_at, row.target_user);
 }).subscribe();
+
+detectDmColumn();
+
+/* DM search box: live-search registered players as you type. */
+if(dmSearchInput){
+  dmSearchInput.addEventListener("input", () => {
+    const value = dmSearchInput.value.trim();
+    clearTimeout(dmSearchTimer);
+
+    if(!value){
+      dmUserResults = [];
+      dmSearchNotice = "";
+      dmSearchSeq++;
+      renderDmSidebar();
+      return;
+    }
+
+    renderDmSidebar();
+    dmSearchTimer = setTimeout(() => searchRegisteredUsers(value), 180);
+  });
+
+  dmSearchInput.addEventListener("keydown", async e => {
+    if(e.key !== "Enter") return;
+    e.preventDefault();
+
+    const value = dmSearchInput.value.trim();
+    if(!value) return;
+
+    const results = await searchRegisteredUsers(value);
+    const exact = results.find(u => u.username.toLowerCase() === value.toLowerCase());
+    const existing = dmThreads.get(value.toLowerCase());
+    const pick = exact || results[0] || (existing ? { username: existing.name } : null);
+
+    if(pick){
+      dmSearchInput.value = "";
+      startDm(pick.username);
+    } else {
+      dmSearchNotice = "No registered player named \u201c" + value + "\u201d.";
+      renderDmSidebar();
+      setTimeout(() => {
+        dmSearchNotice = "";
+        renderDmSidebar();
+      }, 3000);
+    }
+  });
+}
+if(dmInput){
+  dmInput.addEventListener("keydown", e => {
+    if(e.key === "Enter") sendDirectMessage();
+  });
+}
+
 
 let presenceChannel;
 
@@ -2648,13 +3417,10 @@ function setupPresence() {
 
     document.getElementById("onlineCount").textContent = "🟢 " + Object.keys(state).length + " Online";
 
-    dmSelect.innerHTML = '<option value="">Select Online User...</option>';
-    onlineUsernames.forEach(uname => {
-      const opt = document.createElement("option");
-      opt.value = uname;
-      opt.textContent = uname;
-      dmSelect.appendChild(opt);
-    });
+    if(currentTab === "dm"){
+      renderDmSidebar();
+      renderDmThread();
+    }
 
     if(typeof updateFriendsPresence === "function") updateFriendsPresence();
     if(typeof renderRoomList === "function") renderRoomList();
@@ -2677,6 +3443,7 @@ minimizeBtn.onclick = () => {
         chatTabs.style.display = "none";
         messages.style.display = "none";
         document.getElementById("friendsPanel").style.display = "none";
+        dmLayout.style.display = "none";
         chatBottom.style.display = "none";
         handle.style.display = "none";
         chatBox.style.height = "45px";
@@ -2688,10 +3455,17 @@ minimizeBtn.onclick = () => {
                 messages.style.display = "none";
                 chatBottom.style.display = "none";
                 document.getElementById("friendsPanel").style.display = "block";
+                dmLayout.style.display = "none";
+            } else if(currentTab === "dm"){
+                messages.style.display = "none";
+                chatBottom.style.display = "none";
+                document.getElementById("friendsPanel").style.display = "none";
+                dmLayout.style.display = "flex";
             } else {
                 messages.style.display = "";
                 chatBottom.style.display = "";
                 document.getElementById("friendsPanel").style.display = "none";
+                dmLayout.style.display = "none";
             }
         } else {
             authOverlay.style.display = "flex";
@@ -2743,7 +3517,13 @@ const MP = window.MP = {
   channel: null,
   players: new Map(),
   sessionId: (crypto.randomUUID ? crypto.randomUUID() : "s-" + Math.random().toString(36).slice(2) + Date.now().toString(36)),
-  lastBroadcast: 0
+  lastBroadcast: 0,
+  connected: false,
+  reconnectAttempts: 0,
+  reconnectTimer: null,
+  lastChatAt: 0,
+  lastEmoteAt: 0,
+  selfEmote: null
 };
 
 const PUBLIC_ROOMS = [
@@ -2819,8 +3599,286 @@ function updateRoomHud(){
 
 /* ---------------- room UI ---------------- */
 
+/* ---------------- last-room memory ---------------- */
+
+function getLastRoom(){
+  try{
+    const raw = localStorage.getItem("shnailLastRoom");
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return null; }
+}
+
+function updateRejoinButton(){
+  const btn = document.getElementById("rejoinLastButton");
+  if(!btn) return;
+  const last = getLastRoom();
+  if(last && last.code && !(MP.active && MP.roomCode === last.code)){
+    btn.style.display = "inline-block";
+    btn.textContent = "↩ Rejoin " + (last.isPrivate ? "🔒 " : "") + last.code;
+  } else {
+    btn.style.display = "none";
+  }
+}
+
+function rejoinLastRoom(){
+  const last = getLastRoom();
+  if(!last || !last.code){
+    mpToast("No previous room saved yet.");
+    return;
+  }
+  joinRoom(last.code, !!last.isPrivate);
+}
+
+/* ---------------- live roster + room chat ---------------- */
+
+function renderMpRoster(){
+  const panel = document.getElementById("mpRoster");
+  if(!panel) return;
+
+  if(!MP.active){
+    panel.classList.remove("open");
+    panel.style.display = "none";
+    return;
+  }
+  panel.style.display = "flex";
+  panel.classList.add("open");
+
+  const conn = document.getElementById("mpConnDot");
+  if(conn){
+    conn.textContent = MP.connected ? "●" : "○";
+    conn.style.color = MP.connected ? "#3ba55d" : "#ed4245";
+    conn.title = MP.connected ? "Connected" : "Connecting…";
+  }
+
+  const list = document.getElementById("mpRosterList");
+  const title = document.getElementById("mpRosterTitle");
+  if(!list) return;
+
+  const rows = [{
+    name: myName(),
+    score: (typeof score !== "undefined" ? score : 0),
+    x: (typeof player !== "undefined" ? player.x : 0),
+    biome: (typeof currentBiome !== "undefined" ? currentBiome.name : ""),
+    mine: true
+  }];
+
+  MP.players.forEach(p => {
+    rows.push({
+      name: p.name || "Player",
+      score: p.score || 0,
+      x: p.x || 0,
+      biome: p.biome || "",
+      mine: false
+    });
+  });
+
+  rows.sort((a, b) => b.score - a.score);
+  if(title) title.textContent = "RUNNERS · " + rows.length;
+
+  const scrollTop = list.scrollTop;
+  list.innerHTML = "";
+  rows.forEach(r => {
+    const row = document.createElement("div");
+    row.className = "mpRunner" + (r.mine ? " me" : "");
+
+    const dot = document.createElement("span");
+    dot.className = "mpDot";
+    dot.style.background = colorFor(r.name);
+
+    const name = document.createElement("span");
+    name.className = "mpName";
+    name.textContent = r.mine ? (r.name + " (you)") : r.name;
+
+    const sc = document.createElement("span");
+    sc.className = "mpScore";
+    sc.textContent = Number(r.score || 0).toLocaleString();
+
+    row.appendChild(dot);
+    row.appendChild(name);
+    row.appendChild(sc);
+    list.appendChild(row);
+
+    const meta = document.createElement("div");
+    meta.className = "mpRunnerMeta";
+    meta.textContent = Math.max(0, Math.floor((r.x || 0) / 10)) + "m · " + (r.biome || "—");
+    list.appendChild(meta);
+  });
+
+  list.scrollTop = scrollTop;
+}
+
+function clearMpChatLog(){
+  const log = document.getElementById("mpChatLog");
+  if(!log) return;
+  log.innerHTML = "";
+  const hint = document.createElement("div");
+  hint.className = "mpChatLine mpChatMuted";
+  hint.textContent = "Room chat — say hi to your runners.";
+  log.appendChild(hint);
+}
+
+function pushMpChat(name, text, opts = {}){
+  const log = document.getElementById("mpChatLog");
+  if(!log) return;
+
+  if(log.firstChild && log.firstChild.classList && log.firstChild.classList.contains("mpChatMuted")){
+    log.innerHTML = "";
+  }
+
+  const line = document.createElement("div");
+  line.className = "mpChatLine" + (opts.mine ? " mine" : "") + (opts.system ? " mpChatSystem" : "");
+
+  if(!opts.system){
+    const who = document.createElement("b");
+    who.textContent = name + ":";
+    who.style.color = colorFor(name);
+    line.appendChild(who);
+    line.appendChild(document.createTextNode(" " + text));
+  } else {
+    line.textContent = text;
+  }
+
+  log.appendChild(line);
+  while(log.childElementCount > 40) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+function sendMpChat(){
+  if(!MP.active || !MP.channel) return;
+  const input = document.getElementById("mpChatInput");
+  if(!input) return;
+  const text = input.value.trim().slice(0, 120);
+  if(!text) return;
+
+  const now = performance.now();
+  if(MP.lastChatAt && now - MP.lastChatAt < 700){
+    mpToast("Easy there — one message every second.");
+    return;
+  }
+  MP.lastChatAt = now;
+  input.value = "";
+
+  pushMpChat(myName(), text, { mine: true });
+  try{
+    MP.channel.send({
+      type: "broadcast",
+      event: "chat",
+      payload: { name: myName(), text: text }
+    });
+  } catch(e){}
+}
+
+function showSelfEmote(text){
+  MP.selfEmote = { text: String(text).slice(0, 8), until: performance.now() + 2600 };
+}
+
+function sendEmote(text){
+  if(!MP.active) return;
+  const now = performance.now();
+  if(MP.lastEmoteAt && now - MP.lastEmoteAt < 450) return;
+  MP.lastEmoteAt = now;
+
+  showSelfEmote(text);
+  try{
+    if(MP.channel){
+      MP.channel.send({
+        type: "broadcast",
+        event: "emote",
+        payload: {
+          sid: MP.sessionId,
+          name: myName(),
+          x: (typeof player !== "undefined" ? Math.round(player.x) : 0),
+          y: (typeof player !== "undefined" ? Math.round(player.y) : 0),
+          emote: String(text).slice(0, 8)
+        }
+      });
+    }
+  } catch(e){}
+}
+
+/* ---------------- canvas overlays ---------------- */
+
+function drawEmoteBubble(x, y, text){
+  ctx.save();
+  ctx.font = "13px monospace";
+  ctx.textAlign = "center";
+  const w = ctx.measureText(text).width + 14;
+  ctx.fillStyle = "rgba(0,0,0,.72)";
+  ctx.strokeStyle = "#2ed84b";
+  ctx.lineWidth = 1;
+  ctx.fillRect(x - w / 2, y - 30, w, 20);
+  ctx.strokeRect(x - w / 2, y - 30, w, 20);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(text, x, y - 16);
+  ctx.restore();
+}
+
+function drawSelfEmote(){
+  if(!MP.selfEmote) return;
+  if(performance.now() > MP.selfEmote.until){
+    MP.selfEmote = null;
+    return;
+  }
+  if(typeof player === "undefined") return;
+  drawEmoteBubble(player.x + player.w / 2, player.y, MP.selfEmote.text);
+}
+
+function drawRemoteIndicators(){
+  if(!MP.active || typeof cameraX === "undefined") return;
+  const now = performance.now();
+  const margin = 26;
+
+  MP.players.forEach(p => {
+    if(now - (p.seen || 0) > 6000) return;
+
+    const sx = (p.x + 15) - cameraX;
+    const sy = p.y + 15;
+    if(sx > margin && sx < canvas.width - margin && sy > margin && sy < canvas.height - margin) return;
+
+    const cx = Math.max(margin, Math.min(canvas.width - margin, sx));
+    const cy = Math.max(margin, Math.min(canvas.height - margin, sy));
+    const angle = Math.atan2(sy - cy, sx - cx);
+    const color = colorFor(p.name);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(11, 0);
+    ctx.lineTo(-6, -6);
+    ctx.lineTo(-6, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = "10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillStyle = color;
+    const labelY = cy < canvas.height / 2 ? cy + 26 : cy - 16;
+    ctx.fillText(p.name || "Player", Math.max(34, Math.min(canvas.width - 34, cx)), labelY);
+    ctx.restore();
+  });
+}
+
+function scheduleReconnect(code, channel){
+  if(!MP.active || MP.roomCode !== code || MP.channel !== channel) return;
+  if(MP.reconnectAttempts >= 3) return;
+
+  MP.reconnectAttempts++;
+  clearTimeout(MP.reconnectTimer);
+  MP.reconnectTimer = setTimeout(() => {
+    if(MP.active && MP.roomCode === code && MP.channel === channel){
+      pushMpChat("System", "Reconnecting to room…", { system: true });
+      joinRoomChannel(code);
+    }
+  }, 2500);
+}
+
 function openRoomPanel(){
   updateRoomPanelState();
+  updateRejoinButton();
   renderRoomList();
   document.getElementById("roomPanel").classList.add("open");
 }
@@ -2924,6 +3982,18 @@ async function joinRoom(code, isPrivate = false){
   MP.roomCode = code;
   MP.isPrivate = !!isPrivate;
   MP.players.clear();
+  MP.connected = false;
+  MP.reconnectAttempts = 0;
+  MP.selfEmote = null;
+  clearTimeout(MP.reconnectTimer);
+  clearMpChatLog();
+  MP.lastChatAt = 0;
+  MP.lastEmoteAt = 0;
+
+  try{
+    localStorage.setItem("shnailLastRoom", JSON.stringify({ code: code, isPrivate: !!isPrivate, ts: Date.now() }));
+  } catch(e){}
+
   /* Easy mode changes which enemies spawn, which would desync the
      deterministic generator. Force it off for shared rooms. */
   if(easyMode){
@@ -2955,10 +4025,12 @@ function joinRoomChannel(code){
       broadcast: { self: false }
     }
   });
+  const thisChannel = MP.channel;
 
-  MP.channel
+  thisChannel
     .on("broadcast", { event: "pos" }, ({ payload }) => {
       if(!payload || payload.sid === MP.sessionId) return;
+      const prev = MP.players.get(payload.sid);
       MP.players.set(payload.sid, {
         sid: payload.sid,
         name: payload.name || "Player",
@@ -2967,18 +4039,56 @@ function joinRoomChannel(code){
         facing: payload.facing || 1,
         score: payload.score || 0,
         biome: payload.biome || "",
-        seen: performance.now()
+        seen: performance.now(),
+        emote: prev ? prev.emote : null,
+        emoteUntil: prev ? prev.emoteUntil : 0
       });
     })
     .on("broadcast", { event: "bye" }, ({ payload }) => {
       if(payload && payload.sid) MP.players.delete(payload.sid);
       updateRoomHud();
+      renderMpRoster();
     })
     .on("broadcast", { event: "chat" }, ({ payload }) => {
-      if(payload && payload.name) mpToast(payload.name + ": " + payload.text);
+      if(!payload || !payload.name || !payload.text) return;
+
+      /* Light anti-spam: max four lines per sender every two seconds. */
+      if(!MP.chatRates) MP.chatRates = new Map();
+      const now = performance.now();
+      const name = String(payload.name);
+      const recent = (MP.chatRates.get(name) || []).filter(t => now - t < 2000);
+      if(recent.length >= 4) return;
+      recent.push(now);
+      MP.chatRates.set(name, recent);
+
+      pushMpChat(name, String(payload.text).slice(0, 120));
+    })
+    .on("broadcast", { event: "emote" }, ({ payload }) => {
+      if(!payload || payload.sid === MP.sessionId) return;
+      let p = MP.players.get(payload.sid);
+      if(!p){
+        p = {
+          sid: payload.sid,
+          name: payload.name || "Player",
+          x: payload.x || 0,
+          y: payload.y || 0,
+          facing: 1,
+          score: 0,
+          biome: "",
+          seen: performance.now(),
+          emoteUntil: 0
+        };
+      }
+      p.emote = String(payload.emote || "").slice(0, 8);
+      p.emoteUntil = performance.now() + 2600;
+      p.seen = performance.now();
+      if(payload.x != null) p.x = payload.x;
+      if(payload.y != null) p.y = payload.y;
+      MP.players.set(payload.sid, p);
     })
     .on("presence", { event: "sync" }, () => {
-      const state = MP.channel ? MP.channel.presenceState() : {};
+      if(thisChannel !== MP.channel) return;
+      const state = thisChannel.presenceState();
       const live = new Set();
       Object.values(state).forEach(list => list.forEach(p => {
         if(p.sid && p.sid !== MP.sessionId) live.add(p.sid);
@@ -2987,11 +4097,17 @@ function joinRoomChannel(code){
         if(!live.has(sid) && performance.now() - (p.seen || 0) > 2500) MP.players.delete(sid);
       });
       updateRoomHud();
+      renderMpRoster();
     })
     .subscribe(async (status) => {
+      if(thisChannel !== MP.channel) return;
+
       if(status === "SUBSCRIBED"){
+        MP.connected = true;
+        MP.reconnectAttempts = 0;
+        clearTimeout(MP.reconnectTimer);
         try{
-          await MP.channel.track({
+          await thisChannel.track({
             sid: MP.sessionId,
             user_id: (typeof currentUser !== "undefined" && currentUser) ? currentUser.id : null,
             name: myName(),
@@ -3000,6 +4116,15 @@ function joinRoomChannel(code){
         } catch(e){}
         broadcastPosition();
         updateRoomHud();
+        renderMpRoster();
+      } else if(status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED"){
+        MP.connected = false;
+        renderMpRoster();
+        if(MP.reconnectAttempts >= 3){
+          pushMpChat("System", "Connection lost. Rejoin from the Multiplayer menu.", { system: true });
+        } else {
+          scheduleReconnect(code, thisChannel);
+        }
       }
     });
 }
@@ -3030,19 +4155,27 @@ function broadcastPosition(){
 function leaveRoom(showMenu = false){
   if(typeof maybeSubmitScore === "function") maybeSubmitScore(true);
 
-  if(MP.channel){
-    try{ MP.channel.send({ type: "broadcast", event: "bye", payload: { sid: MP.sessionId } }); } catch(e){}
-    try{ MP.channel.untrack(); } catch(e){}
-    try{ client.removeChannel(MP.channel); } catch(e){}
+  const ch = MP.channel;
+  MP.channel = null; /* detach first so CLOSED callbacks can't reconnect */
+
+  if(ch){
+    try{ ch.send({ type: "broadcast", event: "bye", payload: { sid: MP.sessionId } }); } catch(e){}
+    try{ ch.untrack(); } catch(e){}
+    try{ client.removeChannel(ch); } catch(e){}
   }
 
-  MP.channel = null;
   MP.active = false;
   MP.roomCode = null;
   MP.isPrivate = false;
+  MP.connected = false;
+  MP.reconnectAttempts = 0;
+  MP.selfEmote = null;
+  clearTimeout(MP.reconnectTimer);
   MP.players.clear();
   lastSubmittedScore = 0;
 
+  clearMpChatLog();
+  renderMpRoster();
   updateRoomHud();
   updateMenuStatus();
   updateRoomPanelState();
@@ -3060,8 +4193,6 @@ function leaveRoom(showMenu = false){
     mpToast("Left the room");
   }
 }
-
-/* ---------------- drawing remote players ---------------- */
 
 function drawRemotePlayers(){
   if(!MP.active) return;
@@ -3395,6 +4526,7 @@ function renderFriends(){
     if(isOnline) onlineFriends++;
 
     const buttons = [];
+    buttons.push({ label: "Message", ghost: true, onClick: () => startDm(friendName) });
     if(isOnline && room){
       buttons.push({ label: "Join", onClick: () => joinRoom(room, !isPublicRoom(room)) });
     }
@@ -3572,6 +4704,21 @@ document.addEventListener("DOMContentLoaded", () => {
     broadcastPosition();
     updateRoomHud();
   }, 120);
+
+  setInterval(() => {
+    if(!MP.active) return;
+    renderMpRoster();
+  }, 600);
+
+  const mpChatInputEl = document.getElementById("mpChatInput");
+  if(mpChatInputEl){
+    mpChatInputEl.addEventListener("keydown", e => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        sendMpChat();
+      }
+    });
+  }
 
   setInterval(() => { maybeSubmitScore(false); }, 10000);
 
