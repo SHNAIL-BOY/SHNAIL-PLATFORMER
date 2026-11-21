@@ -603,6 +603,43 @@ background:#4CAF50;
 }
 #mpEmoteRow button:hover{ background:#2b5733; }
 
+/* ===== Debug menu ===== */
+#debugPanel{
+  position:fixed; top:80px; right:15px; width:224px;
+  max-height:calc(100vh - 120px); overflow-y:auto; display:none;
+  background:rgba(9,17,9,.96); border:1px solid #2ed84b; border-radius:10px;
+  font-family:monospace; color:#cfeccf; z-index:1100;
+  box-shadow:0 0 18px rgba(46,216,75,.25);
+}
+#debugPanelHeader{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:7px 9px; background:#122412; border-bottom:1px solid #244a24;
+  color:#7CFF7C; font-size:11px; font-weight:bold; letter-spacing:1px;
+  cursor:move; touch-action:none; user-select:none;
+}
+#debugPanel.dragging{ opacity:.93; box-shadow:0 0 24px rgba(46,216,75,.5); }
+#debugStats{
+  font-size:9px; line-height:1.5; padding:5px 9px; color:#9cff9c;
+  opacity:.85; border-bottom:1px solid #244a24; white-space:pre-wrap;
+}
+.debugSection{
+  font-size:9px; letter-spacing:1px; color:#ffd54f;
+  padding:8px 9px 3px; border-top:1px solid #244a24;
+}
+.debugRow{
+  display:flex; align-items:center; gap:7px; padding:4px 9px;
+  font-size:11px; cursor:pointer; user-select:none;
+}
+.debugRow:hover{ background:#173017; }
+.debugRow input{
+  accent-color:#2ed84b; width:14px; height:14px; cursor:pointer; margin:0;
+}
+.debugCount{ margin-left:auto; color:#7CFF7C; font-size:9px; opacity:.85; }
+.debugHint{
+  font-size:9px; opacity:.6; padding:8px 9px; line-height:1.5;
+  border-top:1px solid #244a24;
+}
+
 /* ===== Race mode ===== */
 #raceResultsBox{
   display:none; border-top:1px solid #244a24; padding:4px 6px;
@@ -729,6 +766,7 @@ background:#4CAF50;
   <button id="startButton" onclick="startGame()">START GAME</button><br>
   <button id="multiplayerButton" onclick="openRoomPanel()">🌐 MULTIPLAYER</button>
   <button id="leaderboardButton" onclick="openLeaderboard()">🏆 LEADERBOARD</button><br>
+  <button id="ownerDebugButton" onclick="requestDebugToggle()" style="display:none;background:#1f6f31;">🛠 DEBUG MENU</button><br>
   <button id="easyModeButton" onclick="toggleEasyMode()">EASY MODE: OFF</button>
   <button id="twoPlayerButton" onclick="toggleTwoPlayerMode()">2-PLAYER: OFF</button>
   <div id="menuRoomStatus" style="font-size:11px;color:#ffd54f;margin-top:12px;display:none;"></div>
@@ -763,11 +801,35 @@ background:#4CAF50;
   </div>
 </div>
 
+<div id="debugPanel">
+  <div id="debugPanelHeader">
+    <span>🛠 DEBUG MENU</span>
+    <button class="xBtn" onclick="closeDebugPanel()">✕</button>
+  </div>
+  <div id="debugStats">—</div>
+  <div class="debugSection">PLAYER</div>
+  <label class="debugRow"><input type="checkbox" id="dbgInvincible" onchange="setDebugOption('invincible', this.checked)"> Invincible</label>
+  <label class="debugRow"><input type="checkbox" id="dbgInfiniteAmmo" onchange="setDebugOption('infiniteAmmo', this.checked)"> Infinite Ammo</label>
+  <label class="debugRow"><input type="checkbox" id="dbgHitboxes" onchange="setDebugOption('hitboxes', this.checked)"> Show Hitboxes</label>
+  <label class="debugRow"><input type="checkbox" id="dbgNoclip" onchange="setDebugOption('noclip', this.checked)"> Noclip</label>
+
+  <div class="debugSection">POWER-UPS · INFINITE (OFF BY DEFAULT)</div>
+  <label class="debugRow"><input type="checkbox" id="dbgPuShield" onchange="setDebugOption('shield', this.checked)"> 🛡️ Shield</label>
+  <label class="debugRow"><input type="checkbox" id="dbgPuTriple" onchange="setDebugOption('triple', this.checked)"> 🔱 Triple Shot</label>
+  <label class="debugRow"><input type="checkbox" id="dbgPuFreeze" onchange="setDebugOption('freeze', this.checked)"> ❄️ Time Freeze</label>
+  <label class="debugRow"><input type="checkbox" id="dbgPuDrone" onchange="setDebugOption('drone', this.checked)"> 🛸 Drone</label>
+  <label class="debugRow"><input type="checkbox" id="dbgPuGhost" onchange="setDebugOption('ghost', this.checked)"> 👻 Ghost</label>
+  <label class="debugRow"><input type="checkbox" id="dbgPuAngel" onchange="setDebugOption('angel', this.checked)"> 🪽 Angel Wings</label>
+
+  <div class="debugHint">Owner-only debug tools. Drag this header to move the menu. Ctrl+Alt+S, Ctrl+Shift+D or F2 toggles it. Power-up switches grant the effect permanently (as if collected) and are saved until you turn them off. The HUD shows ∞. Nuke has been removed.</div>
+</div>
+
 <div id="pauseMenu">
   <div class="pauseCard">
     <h2>⏸ PAUSED</h2>
     <button id="resumeButton" onclick="resumeGame()">▶ RESUME</button>
     <button id="pauseMainMenuButton" onclick="returnToMainMenu()">🏠 MAIN MENU</button>
+    <button id="pauseDebugButton" onclick="requestDebugToggle()" style="display:none;background:#1f6f31;">🛠 DEBUG MENU</button>
     <div class="pauseHint">ESC to resume</div>
   </div>
 </div>
@@ -859,12 +921,6 @@ let inMainMenu = false;
 let easyMode = false;
 let twoPlayerMode = false;
 
-/* =========================================================
-   DETERMINISTIC MAP GENERATION
-   Every random value used to build the level comes from this
-   seeded generator, so a given seed always produces the exact
-   same map for every player / every reload.
-   ========================================================= */
 const MAP_SALT = "shnail-map-v1:";
 
 function hashString(str){
@@ -1103,12 +1159,301 @@ let noclip = false;
 
 /* Debug tools are locked to the owner's account. */
 const DEBUG_EMAIL = "shnailboy@gmail.com";
+let debugOwnerVerifiedUntil = 0;
+
+function isOwnerEmail(email){
+  return String(email || "").toLowerCase().trim() === DEBUG_EMAIL;
+}
+
 function canUseDebug(){
+  if(debugOwnerVerifiedUntil > Date.now()) return true;
   try{
     return typeof currentUser !== "undefined" && !!currentUser &&
-      String(currentUser.email || "").toLowerCase() === DEBUG_EMAIL;
+      isOwnerEmail(currentUser.email);
   } catch(e){
     return false;
+  }
+}
+
+function updateOwnerUi(){
+  const owner = canUseDebug();
+  const mainBtn = document.getElementById("ownerDebugButton");
+  const pauseBtn = document.getElementById("pauseDebugButton");
+  if(mainBtn) mainBtn.style.display = owner ? "inline-block" : "none";
+  if(pauseBtn) pauseBtn.style.display = owner ? "block" : "none";
+}
+
+async function requestDebugToggle(){
+  if(debugMode){
+    debugMode = false;
+    debugPopup = 180;
+    syncDebugPanel();
+    updateOwnerUi();
+    return;
+  }
+
+  let ok = canUseDebug();
+
+  /* Fallback: verify the live Supabase session directly. This covers the
+     short window before the auth callback fills currentUser. */
+  if(!ok && typeof client !== "undefined" && client && client.auth && client.auth.getUser){
+    try{
+      const { data } = await client.auth.getUser();
+      const email = data && data.user ? data.user.email : "";
+      if(isOwnerEmail(email)){
+        ok = true;
+        debugOwnerVerifiedUntil = Date.now() + 5 * 60 * 1000;
+      }
+    } catch(e){ /* stay denied */ }
+  }
+
+  if(!ok){
+    const signedIn = (typeof currentUser !== "undefined" && !!currentUser);
+    if(typeof mpToast === "function"){
+      mpToast(signedIn
+        ? "Debug mode is restricted to the game owner."
+        : "Debug mode is restricted to Shnail and Shnail only");
+    }
+    return;
+  }
+
+  debugMode = true;
+  debugPopup = 180;
+  syncDebugPanel();
+  updateOwnerUi();
+  applyAllDebugPowerupEffects();
+}
+
+/* Per-power-up spawn switches (debug menu).
+   Default: OFF — tick the ones you want to spawn.
+   Nuke has been removed from the debug list entirely.
+   Choices persist in localStorage and stay in effect until changed. */
+const debugPowerupToggles = {
+  shield: false,
+  triple: false,
+  freeze: false,
+  drone: false,
+  ghost: false,
+  angel: false
+};
+
+(function loadDebugPowerupToggles(){
+  try{
+    const raw = localStorage.getItem("shnailDebugPowerups");
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    if(!saved || typeof saved !== "object") return;
+    Object.keys(debugPowerupToggles).forEach(key => {
+      if(typeof saved[key] === "boolean") debugPowerupToggles[key] = saved[key];
+    });
+  } catch(e){ /* defaults stay off */ }
+})();
+
+/* The owner's switches stay active even after the debug menu is closed —
+   they only change when the switch itself is flipped. */
+const DEBUG_POWERUP_LABELS = {
+  shield: "Shield",
+  triple: "Triple Shot",
+  freeze: "Time Freeze",
+  drone: "Drone",
+  ghost: "Ghost",
+  angel: "Angel Wings"
+};
+
+/* Debug power-up switches grant the effect directly (as if collected) and
+   keep it active forever. Nuke is not available here. */
+function applyDebugPowerupEffect(key, on){
+  if(typeof player === "undefined") return;
+
+  const targets = [player];
+  if(typeof twoPlayerMode !== "undefined" && twoPlayerMode && typeof player2 !== "undefined"){
+    targets.push(player2);
+  }
+
+  try{
+    if(key === "shield"){
+      targets.forEach(p => { p.shieldHits = on ? Infinity : 0; });
+    } else if(key === "triple"){
+      targets.forEach(p => { p.tripleShot = !!on; });
+    } else if(key === "freeze"){
+      timeFreezeTimer = on ? Infinity : 0;
+    } else if(key === "drone"){
+      droneTimer = on ? Infinity : 0;
+    } else if(key === "ghost"){
+      ghostTimer = on ? Infinity : 0;
+    } else if(key === "angel"){
+      angelPowerTimer = on ? Infinity : 0;
+    }
+  } catch(e){ /* game state not ready */ }
+}
+
+function applyAllDebugPowerupEffects(){
+  if(!canUseDebug()) return;
+  ["shield", "triple", "freeze", "drone", "ghost", "angel"].forEach(key => {
+    if(debugPowerupToggles[key]) applyDebugPowerupEffect(key, true);
+  });
+}
+
+function setDebugOption(key, value){
+  if(!canUseDebug()) return;
+  if(key === "invincible") debugInvincible = !!value;
+  else if(key === "infiniteAmmo") debugInfiniteAmmo = !!value;
+  else if(key === "hitboxes") debugHitboxes = !!value;
+  else if(key === "noclip") noclip = !!value;
+  else if(Object.prototype.hasOwnProperty.call(debugPowerupToggles, key)){
+    debugPowerupToggles[key] = !!value;
+
+    try{
+      localStorage.setItem("shnailDebugPowerups", JSON.stringify(debugPowerupToggles));
+    } catch(e){ /* storage blocked */ }
+
+    applyDebugPowerupEffect(key, !!value);
+
+    if(typeof mpToast === "function"){
+      mpToast((DEBUG_POWERUP_LABELS[key] || key) + (value
+        ? " ON — infinite"
+        : " OFF"));
+    }
+  }
+}
+
+function syncDebugPanel(){
+  const panel = document.getElementById("debugPanel");
+  if(!panel) return;
+
+  if(!debugMode || !canUseDebug()){
+    panel.style.display = "none";
+    return;
+  }
+  panel.style.display = "block";
+  applyDebugPanelPos();
+
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if(el) el.checked = !!value;
+  };
+  set("dbgInvincible", debugInvincible);
+  set("dbgInfiniteAmmo", debugInfiniteAmmo);
+  set("dbgHitboxes", debugHitboxes);
+  set("dbgNoclip", noclip);
+  set("dbgPuShield", debugPowerupToggles.shield);
+  set("dbgPuTriple", debugPowerupToggles.triple);
+  set("dbgPuFreeze", debugPowerupToggles.freeze);
+  set("dbgPuDrone", debugPowerupToggles.drone);
+  set("dbgPuGhost", debugPowerupToggles.ghost);
+  set("dbgPuAngel", debugPowerupToggles.angel);
+}
+
+function closeDebugPanel(){
+  debugMode = false;
+  debugPopup = 180;
+  syncDebugPanel();
+}
+
+/* ---- draggable debug panel ---- */
+function getDebugPanelPos(){
+  try{
+    const raw = localStorage.getItem("shnailDebugPos");
+    if(!raw) return null;
+    const pos = JSON.parse(raw);
+    if(typeof pos.left === "number" && typeof pos.top === "number") return pos;
+  } catch(e){}
+  return null;
+}
+
+function applyDebugPanelPos(){
+  const panel = document.getElementById("debugPanel");
+  if(!panel) return;
+  const pos = getDebugPanelPos();
+  if(!pos) return;
+
+  const width = panel.offsetWidth || 224;
+  const height = panel.offsetHeight || 320;
+  const left = Math.max(0, Math.min(Math.max(0, window.innerWidth - width), pos.left));
+  const top = Math.max(0, Math.min(Math.max(0, window.innerHeight - height), pos.top));
+
+  panel.style.left = left + "px";
+  panel.style.top = top + "px";
+  panel.style.right = "auto";
+}
+
+function initDebugPanelDrag(){
+  const panel = document.getElementById("debugPanel");
+  const header = document.getElementById("debugPanelHeader");
+  if(!panel || !header || header.dataset.dragReady === "1") return;
+  header.dataset.dragReady = "1";
+
+  let drag = null;
+
+  header.addEventListener("pointerdown", e => {
+    if(e.target && e.target.closest("button")) return;
+    const rect = panel.getBoundingClientRect();
+    drag = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+    panel.style.left = rect.left + "px";
+    panel.style.top = rect.top + "px";
+    panel.style.right = "auto";
+    panel.classList.add("dragging");
+    e.preventDefault();
+  });
+
+  document.addEventListener("pointermove", e => {
+    if(!drag) return;
+    const width = panel.offsetWidth || 224;
+    const height = panel.offsetHeight || 320;
+    const left = Math.max(0, Math.min(window.innerWidth - width, e.clientX - drag.dx));
+    const top = Math.max(0, Math.min(window.innerHeight - height, e.clientY - drag.dy));
+    panel.style.left = left + "px";
+    panel.style.top = top + "px";
+    e.preventDefault();
+  });
+
+  const endDrag = () => {
+    if(!drag) return;
+    drag = null;
+    panel.classList.remove("dragging");
+    try{
+      localStorage.setItem("shnailDebugPos", JSON.stringify({
+        left: parseFloat(panel.style.left) || 0,
+        top: parseFloat(panel.style.top) || 0
+      }));
+    } catch(e){}
+  };
+
+  document.addEventListener("pointerup", endDrag);
+  document.addEventListener("pointercancel", endDrag);
+}
+
+function updateDebugStats(){
+  const el = document.getElementById("debugStats");
+  if(!el) return;
+
+  if(!debugMode || !canUseDebug()){
+    el.textContent = "";
+    return;
+  }
+
+  try{
+    el.textContent =
+      "FPS " + fps +
+      " · X " + Math.floor(player.x) +
+      " · Y " + Math.floor(player.y) + "\n" +
+      "vx " + player.dx.toFixed(1) +
+      " · vy " + player.dy.toFixed(1) +
+      " · enemies " + enemies.length + "\n" +
+      currentBiome.name + " · seed " + mapSeed + "\n" +
+      "pickups " + (typeof powerups !== "undefined" ? powerups.length : 0) +
+      " · angels " + (typeof angels !== "undefined" ? angels.length : 0);
+
+    const counts = {};
+    if(typeof powerups !== "undefined" && Array.isArray(powerups)){
+      powerups.forEach(p => { counts[p.type] = (counts[p.type] || 0) + 1; });
+    }
+    if(typeof angels !== "undefined" && Array.isArray(angels)){
+      counts.angel = angels.length;
+    }
+
+  } catch(e){
+    el.textContent = "";
   }
 }
 
@@ -1261,24 +1606,23 @@ document.addEventListener("keydown",e=>{
     }
   }
 
-  if(debugMode && !canUseDebug()) debugMode = false;
-  if(debugMode){
-      if(e.code==="Digit1") debugInvincible = !debugInvincible;
-      if(e.code==="Digit2") debugInfiniteAmmo = !debugInfiniteAmmo;
-      if(e.code==="Digit3") debugHitboxes = !debugHitboxes;
-      if(e.code==="Digit4") noclip = !noclip;
+  if(debugMode && !canUseDebug()){
+    debugMode = false;
+    syncDebugPanel();
   }
 });
   
 document.addEventListener("keydown",e=>{
-    if(e.ctrlKey && e.altKey && e.code==="KeyS"){
+    /* Ctrl+Alt+S can be swallowed by some keyboard layouts / AltGr, so
+       offer a couple of reliable alternatives. */
+    const debugShortcut =
+      (e.ctrlKey && e.altKey && e.code==="KeyS") ||
+      (e.ctrlKey && e.shiftKey && e.code==="KeyD") ||
+      e.code === "F2";
+
+    if(debugShortcut){
         e.preventDefault();
-        if(!canUseDebug()){
-            if(typeof mpToast === "function") mpToast("Debug mode is restricted to the game owner.");
-            return;
-        }
-        debugMode = !debugMode;
-        debugPopup = 180;
+        requestDebugToggle();
     }
 });
 
@@ -1323,6 +1667,11 @@ function handleGamepad(){
   prevButtons = gp.buttons.map(b => b.pressed);
 }
 
+function hudMeter(value){
+  if(value === Infinity || !isFinite(value)) return "∞";
+  return Math.ceil(value / 60);
+}
+
 function updateHUD(){
   let ammoPercent = (player.ammo / player.maxAmmo) * 100;
   document.getElementById("ammoBar").style.width = ammoPercent + "%";
@@ -1333,31 +1682,33 @@ function updateHUD(){
   const shieldHud = document.getElementById("shieldHud");
   if(player.shieldHits > 0 || (twoPlayerMode && player2.shieldHits > 0)){
     shieldHud.style.display = "block";
-    document.getElementById("shieldHitsText").innerText = Math.max(player.shieldHits, player2.shieldHits);
+    const shieldHits = Math.max(player.shieldHits, player2.shieldHits);
+    document.getElementById("shieldHitsText").textContent =
+      (shieldHits === Infinity || !isFinite(shieldHits)) ? "∞" : shieldHits;
   } else { shieldHud.style.display = "none"; }
 
   const freezeHud = document.getElementById("freezeHud");
   if(timeFreezeTimer > 0){
     freezeHud.style.display = "block";
-    document.getElementById("freezeTimeText").innerText = Math.ceil(timeFreezeTimer / 60);
+    document.getElementById("freezeTimeText").textContent = hudMeter(timeFreezeTimer);
   } else { freezeHud.style.display = "none"; }
 
   const droneHud = document.getElementById("droneHud");
   if(droneTimer > 0){
     droneHud.style.display = "block";
-    document.getElementById("droneTimeText").innerText = Math.ceil(droneTimer / 60);
+    document.getElementById("droneTimeText").textContent = hudMeter(droneTimer);
   } else { droneHud.style.display = "none"; }
 
   const ghostHud = document.getElementById("ghostHud");
   if(ghostTimer > 0){
     ghostHud.style.display = "block";
-    document.getElementById("ghostTimeText").innerText = Math.ceil(ghostTimer / 60);
+    document.getElementById("ghostTimeText").textContent = hudMeter(ghostTimer);
   } else { ghostHud.style.display = "none"; }
 
   const angelHud = document.getElementById("angelHud");
   if(angelPowerTimer > 0){
     angelHud.style.display = "block";
-    document.getElementById("angelTimeText").innerText = Math.ceil(angelPowerTimer / 60);
+    document.getElementById("angelTimeText").textContent = hudMeter(angelPowerTimer);
   } else { angelHud.style.display = "none"; }
 }
 
@@ -1522,7 +1873,11 @@ function update(timestamp){
     debugInfiniteAmmo = false;
     debugHitboxes = false;
     noclip = false;
+    if(typeof syncDebugPanel === "function") syncDebugPanel();
   }
+
+  /* Debug power-up switches grant permanent effects (also after respawn). */
+  if(typeof applyAllDebugPowerupEffects === "function") applyAllDebugPowerupEffects();
 
   /* Race countdown: freeze the world until GO so everyone starts even. */
   if(typeof raceIsLocked === "function" && raceIsLocked()){
@@ -2434,48 +2789,6 @@ function draw(){
     ctx.fillText("⚡ SPEED BOOST!", 10, 80);
   }
 
- if(debugMode){
-    ctx.fillStyle="red";
-    ctx.font="bold 18px monospace";
-    ctx.fillText("⚠ DEBUG MODE",10,100);
-
-    ctx.fillStyle="rgba(0,0,0,.75)";
-    ctx.fillRect(550,10,240,260);
-
-    ctx.strokeStyle="lime";
-    ctx.strokeRect(550,10,240,260);
-
-    ctx.fillStyle="lime";
-    ctx.font="14px monospace";
-    ctx.fillText("DEBUG MODE",565,30);
-
-    let distanceToNextBiome = Math.floor(nextBiomeTargetX - player.x);
-
-    ctx.fillStyle="white";
-    ctx.fillText("Invincible: " +(debugInvincible ? "ON" : "OFF"),565,55);
-    ctx.fillText("Infinite Ammo: " +(debugInfiniteAmmo ? "ON" : "OFF"),565,75);
-    ctx.fillText("Hitboxes: " +(debugHitboxes ? "ON" : "OFF"),565,95);
-    ctx.fillText("Noclip: " +(noclip ? "ON" : "OFF"),565,115);
-    ctx.fillText("Next Biome: "+distanceToNextBiome+" px",565,135);
-    ctx.fillText("Player X: "+Math.floor(player.x),565,155);
-    ctx.fillText("Player Y: "+Math.floor(player.y),565,175);
-    ctx.fillText("Velocity X: "+player.dx.toFixed(2),565,195);
-    ctx.fillText("Velocity Y: "+player.dy.toFixed(2),565,215);
-    ctx.fillText("Enemies: "+enemies.length,565,235);
-    ctx.fillText("FPS: "+fps,565,255);
-}
-
-  if(debugPopup > 0){
-    debugPopup -= dt;
-    ctx.fillStyle = debugMode ? "rgba(0,120,0,.9)" : "rgba(120,0,0,.9)";
-    ctx.fillRect(250,20,300,40);
-    ctx.strokeStyle = "white";
-    ctx.strokeRect(250,20,300,40);
-    ctx.fillStyle = "white";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText(debugMode ? "🛠 DEBUG MODE ENABLED" : "🛠 DEBUG MODE DISABLED", 265, 46);
-  }
-
   /* Race countdown / timer / finish banner (screen space). */
   if(typeof drawRaceOverlay === "function") drawRaceOverlay();
 }
@@ -2632,6 +2945,8 @@ function showChatUI() {
   if(accountLine) accountLine.textContent = "Signed in as " + chatDisplayName() + " · friends & leaderboard enabled";
 
   if(typeof ensureProfile === "function") ensureProfile();
+  if(typeof updateOwnerUi === "function") updateOwnerUi();
+  if(typeof applyAllDebugPowerupEffects === "function") applyAllDebugPowerupEffects();
   loadMessages();
   setupPresence();
   if(typeof loadFriends === "function") loadFriends();
@@ -2639,6 +2954,7 @@ function showChatUI() {
 }
 
 function showAuthUI() {
+  if(typeof debugOwnerVerifiedUntil !== "undefined") debugOwnerVerifiedUntil = 0;
   authOverlay.style.display = "flex";
   chatTabs.style.display = "none";
   document.getElementById("tabFriends").style.display = "none";
@@ -2662,6 +2978,13 @@ function showAuthUI() {
     debugInfiniteAmmo = false;
     debugHitboxes = false;
     noclip = false;
+  }
+  if(typeof syncDebugPanel === "function") syncDebugPanel();
+  if(typeof updateOwnerUi === "function") updateOwnerUi();
+  if(typeof applyDebugPowerupEffect === "function" && typeof debugPowerupToggles !== "undefined"){
+    ["shield", "triple", "freeze", "drone", "ghost", "angel"].forEach(key => {
+      if(debugPowerupToggles[key]) applyDebugPowerupEffect(key, false);
+    });
   }
 
   /* Reset the DM view. */
@@ -4775,6 +5098,11 @@ function drawRemotePlayers(){
     ctx.fillText(label, p.x + 15, p.y - 9);
     ctx.textAlign = "left";
     ctx.restore();
+
+    /* Quick emote bubble above the remote player. */
+    if(p.emote && p.emoteUntil > now){
+      drawEmoteBubble(p.x + 15, p.y - 14, p.emote);
+    }
   });
 }
 
@@ -4982,7 +5310,7 @@ function renderFriendsSetupNeeded(error){
   const msg = document.createElement("div");
   msg.style.cssText = "font-size:11px;line-height:1.6;color:#ffca28;";
   msg.textContent = (error.code === "PGRST205" || error.code === "42P01")
-    ? "Friends backend not set up yet. Run supabase_schema.sql in your Supabase SQL editor once, then reload."
+    ? "Creator Note: Friends backend not set up yet. Run the sql in the Supabase SQL editor once, then reload."
     : "Could not load friends: " + error.message;
   if(list) { list.innerHTML = ""; list.appendChild(msg); }
   if(reqs) reqs.innerHTML = "";
@@ -5263,6 +5591,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!MP.active) return;
     renderMpRoster();
   }, 600);
+
+  if(typeof initDebugPanelDrag === "function") initDebugPanelDrag();
+  setInterval(() => {
+    if(typeof updateDebugStats === "function") updateDebugStats();
+  }, 500);
 
   const mpChatInputEl = document.getElementById("mpChatInput");
   if(mpChatInputEl){
